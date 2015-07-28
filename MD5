@@ -1,0 +1,17 @@
+624521708d3947f9655578cad74c8687 *DESCRIPTION
+f8e0f4bfd1b675411cd31546b3517e5d *LICENSE
+4813c56fd6aaf802f5cf46c074402b45 *NAMESPACE
+e1bf6933f16225edadf024ac4207790f *R/add_brackets.R
+061effbd2f8a92da1a307dfc7b66849d *R/by_2sd.R
+e6a52e60ab377ef4303c78080a3e0b4f *R/dwplot.R
+555bc3730c70d482889afd1518970fc1 *README.md
+0d398731e57df4cb759839f47657c65f *build/vignette.rds
+d2819ad7bc611b5f495ec33da6b78700 *inst/CITATION
+053b23687a310c329047bf23f1c8453b *inst/doc/dwplot-vignette.R
+227b3f7d1a03e857226abf444ec532a2 *inst/doc/dwplot-vignette.Rmd
+99b4f258f4703f3419f5dcbd6568e720 *inst/doc/dwplot-vignette.html
+8cdfc6edb73f14f87af7cbd8a4c16882 *man/add_brackets.Rd
+7239059ae152cdedd3831b1640dc48db *man/by_2sd.Rd
+2cf0b56c26263d1dc304958a688eea40 *man/dwplot.Rd
+227b3f7d1a03e857226abf444ec532a2 *vignettes/dwplot-vignette.Rmd
+8fce8d411f85f93da9acc69c2cb2e8c3 *vignettes/vignette_dwplot.bib
