@@ -23,10 +23,11 @@ To save, wrap the \code{grid.draw} command with \code{\link[grDevices]{pdf}} or 
 }
 \examples{
 library(broom)
+library(dplyr)
 
 data(mtcars)
 m1 <- lm(mpg ~ wt + cyl + disp, data = mtcars)
-m1_df <- tidy(m1) # create data.frame of regression results
+m1_df <- broom::tidy(m1) # create data.frame of regression results
 
 p <- dwplot(m1_df) +
     scale_y_discrete(breaks = 4:1, labels=c("Intercept", "Weight", "Cylinders", "Displacement")) +
