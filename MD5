@@ -1,4 +1,4 @@
-7d5b13c878516892d4ae0733c7ce5f24 *DESCRIPTION
+5130a9bcfec1801fb6134b20ffbec775 *DESCRIPTION
 f8e0f4bfd1b675411cd31546b3517e5d *LICENSE
 1d80f3e1904916250c15216b99b84cfd *NAMESPACE
 1a97cfb79bd32e9fcc3922528496f7c1 *R/add_brackets.R
@@ -13,10 +13,13 @@ f8e0f4bfd1b675411cd31546b3517e5d *LICENSE
 115909309f8413176fb3c4394cd404bd *inst/CITATION
 3814077893937761a47621f333cf528d *inst/doc/dotwhisker-vignette.R
 1df1640507bec06f311b7e061efb67b1 *inst/doc/dotwhisker-vignette.Rmd
-4f674daedb22d22e211593009e188b28 *inst/doc/dotwhisker-vignette.html
+c26ac3d3f569a294238cdf6013f24f29 *inst/doc/dotwhisker-vignette.html
+053b23687a310c329047bf23f1c8453b *inst/doc/dwplot-vignette.R
 a0025852af7bf94862dc471315914ff7 *inst/doc/kl2007_examples.R
 ab453d9f9cc2e9817b794d7366c88141 *inst/doc/kl2007_examples.Rmd
-73cad0aa3b51846813bdf400eac93df1 *inst/doc/kl2007_examples.html
+9653078b5483faa915f92189adf125e2 *inst/doc/kl2007_examples.html
+0acd07eaae86158414964365a69033dc *inst/doc/vignette.bib
+8fce8d411f85f93da9acc69c2cb2e8c3 *inst/doc/vignette_dwplot.bib
 2d3d5e563ac10ef15a4319846fbe6167 *man/add_brackets.Rd
 1043156ba53e6427ddc187cfd5cf63fc *man/by_2sd.Rd
 04a4bcfa8b88435e22e87441c0205dcb *man/dwplot.Rd
@@ -27,3 +30,4 @@ c7ae9bc6d67d3c06d1adefb35d304bcf *man/small_multiple.Rd
 1df1640507bec06f311b7e061efb67b1 *vignettes/dotwhisker-vignette.Rmd
 ab453d9f9cc2e9817b794d7366c88141 *vignettes/kl2007_examples.Rmd
 0acd07eaae86158414964365a69033dc *vignettes/vignette.bib
+8fce8d411f85f93da9acc69c2cb2e8c3 *vignettes/vignette_dwplot.bib
