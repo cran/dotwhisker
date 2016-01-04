@@ -1,9 +1,9 @@
-96bb1563098e1f3f3b95fea57fe315ed *DESCRIPTION
+f02624ac60fd4e1c3295dc8f3e45832f *DESCRIPTION
 f8e0f4bfd1b675411cd31546b3517e5d *LICENSE
 4071ac156cc2887b73cf1c14af147124 *NAMESPACE
 537f1621f9b4f9c0989d7262d1f6b6b6 *R/add_brackets.R
 08905ecb8c64cd735ed2c24e1aaea8e0 *R/by_2sd.R
-6c5d651b3b6cbb7d85c028296698cf36 *R/dwplot.R
+70e07b447a52d6650243ee27e17e8f71 *R/dwplot.R
 c364d9c7d4dbf6f70ee96855d3d57a51 *R/relabel_predictors.R
 75553980029708e4bf8c7c546d2718be *R/relabel_y_axis.R
 2f2b095236d75564bc1d1c53f2c121dd *R/secret_weapon.R
@@ -22,12 +22,12 @@ ab453d9f9cc2e9817b794d7366c88141 *inst/doc/kl2007_examples.Rmd
 8fce8d411f85f93da9acc69c2cb2e8c3 *inst/doc/vignette_dwplot.bib
 42ba72aa34cba8e8a9ba4d1b55bccade *man/add_brackets.Rd
 2fb583a3144bb805cbef8757b130e2d2 *man/by_2sd.Rd
-28feb6cbf25fd39a8d0da9a657b07702 *man/dwplot.Rd
+218636ff4cd9eda1e0ec3753f1868896 *man/dwplot.Rd
 9aafa8c3e2a5873a3dd32091604dccfa *man/relabel_predictors.Rd
 4462fb5ba4dd75251552ddd6076abcef *man/relabel_y_axis.Rd
 24866e7db4d62b3de337f0dd9dc55022 *man/secret_weapon.Rd
 e205b0b810d07a6c60983ca2fc05dd4b *man/small_multiple.Rd
 0b0a953912ed53f544c78a5dc35377c3 *vignettes/dotwhisker-vignette.Rmd
-f44ae7c29fae73db41050e05615ba793 *vignettes/kl2007_examples.Rmd
+5b114c3132d1507eb3bc46707d36f44e *vignettes/kl2007_examples.Rmd
 0acd07eaae86158414964365a69033dc *vignettes/vignette.bib
 8fce8d411f85f93da9acc69c2cb2e8c3 *vignettes/vignette_dwplot.bib
