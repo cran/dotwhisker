@@ -1,6 +1,13 @@
+## Version 0.2.1
+1. Fixed the error due to the update of `dplyr::group_by`
+2. Fixing the errors in vignette.
+3. Adding the `show_intercept` argument. 
+4. Shorten the version number to three digits as `devtools` suggests.
+
+
 ## Version 0.2.0.5
-1. Fixed the error due to the update of `gridExtra`
-2. Fixed the error due to the update of `ggplot2`
+1. Fixed the error due to the update of `gridExtra`.
+2. Fixed the error due to the update of `ggplot2`.
 
 ## Version 0.2.0.4
 1. Fixed presenting error in multilevel models (#44)
