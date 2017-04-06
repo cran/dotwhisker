@@ -88,7 +88,7 @@ small_multiple <- function(x, dodge_size = .06, alpha = .05, show_intercept = FA
     df <- dw_tidy(x)
 
     # Drop intercept if show_intercept = FALSE
-    if (!show_intercept) df <- df %>% dplyr::filter(term!="(Intercept)")
+    if (!show_intercept) df <- df %>% filter(!grepl("^\\(Intercept\\)$|^\\w+\\|\\w+$", term)) # enable detecting intercept in polr objects
 
     # Set variables that will appear in pipelines to NULL to make R CMD check happy
     term <- estimate <- submodel <- NULL
@@ -167,10 +167,10 @@ small_multiple <- function(x, dodge_size = .06, alpha = .05, show_intercept = FA
     point_args <- c(point_args0, dot_args)
 
     # Plot
-    p <- ggplot(df, aes(x = x_ind + shift, y = estimate, colour=factor(submodel))) +
+    p <- ggplot(df, aes(x = as.factor(x_ind + shift), y = estimate, colour=factor(submodel))) +
         do.call(geom_segment, segment_args) +  # Draw segments first ...
         do.call(geom_point, point_args) +
-        scale_x_continuous(breaks=x_ind, labels=mod_names) +
+        scale_x_discrete(breaks=x_ind, labels=mod_names) +
         xlab("") +
         facet_grid(term ~ ., scales = "free_y")
 

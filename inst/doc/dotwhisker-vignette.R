@@ -23,9 +23,13 @@ dwplot(list(m1, m2, m3))
 dwplot(list(m1, m2, m3), show_intercept = TRUE)
 
 ## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
-dwplot(list(m1, m2, m3)) +
-     relabel_y_axis(c("Weight", "Cylinders", "Displacement", 
-                     "Gears", "Horsepower", "Manual")) +
+dwplot(list(m1, m2, m3)) %>% 
+    relabel_predictors(c(wt = "Weight",                       
+                         cyl = "Cylinders", 
+                         disp = "Displacement", 
+                         hp = "Horsepower", 
+                         gear = "Gears", 
+                         am = "Manual")) +
      theme_bw() + xlab("Coefficient Estimate") + ylab("") +
      geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
      ggtitle("Predicting Gas Mileage") +
@@ -50,7 +54,8 @@ dwplot(two_models)
 
 ## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
 # Run model on subsets of data, save results as tidy df, make a model variable, and relabel predictors
-by_trans <- mtcars %>% group_by(am) %>%                      # group data by trans
+by_trans <- mtcars %>% 
+    group_by(am) %>%                                         # group data by trans
     do(tidy(lm(mpg ~ wt + cyl + disp + gear, data = .))) %>% # run model on each grp
     rename(model=am) %>%                                     # make model variable
     relabel_predictors(c(wt = "Weight",                      # relabel predictors
@@ -72,6 +77,24 @@ dwplot(by_trans, dodge_size = .05) +
                       name = "Transmission",
                       breaks = c(0, 1),
                       labels = c("Automatic", "Manual"))
+
+## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
+ dwplot(by_trans, dodge_size = .05) +
+   geom_point(aes(colour = model, shape = model), size = 3) +
+   theme_bw() + xlab("Coefficient Estimate") + ylab("") +
+   geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
+   ggtitle("Predicting Gas Mileage by Transmission Type") +
+   theme(plot.title = element_text(face="bold"),
+         legend.justification=c(0, 0), legend.position=c(0, 0),
+         legend.background = element_rect(colour="grey80"),
+         legend.title.align = .5) +
+   scale_colour_grey(start = .1, end = .1, # if start and end same value, use same colour for all models 
+                     name  ="Model", 
+                     breaks=c(0, 1),
+                     labels=c("Automatic", "Manual")) +
+   scale_shape_discrete(name  ="Model",
+                        breaks=c(0, 1),
+                        labels=c("Automatic", "Manual"))
 
 ## ----fig.width = 7, message = FALSE, warning = FALSE---------------------
 library(dplyr)
@@ -111,6 +134,7 @@ reordered_vars <- c("wt", "cyl", "disp", "hp", "gear", "am")
 m123_df <- rbind(tidy(m1) %>% mutate(model = "Model 1"),      # tidy results &
                  tidy(m2) %>% mutate(model = "Model 2"),      # add a variable to
                  tidy(m3) %>% mutate(model = "Model 3")) %>%  # identify model.
+    filter(term != "(Intercept)") %>%                         # remove intercepts
     by_2sd(mtcars) %>%                                        # rescale coefficients
     mutate(term = factor(term, levels = reordered_vars)) %>%  # make term a factor &
     group_by(model) %>% arrange(term) %>%                     # reorder
@@ -123,8 +147,6 @@ m123_df <- rbind(tidy(m1) %>% mutate(model = "Model 1"),      # tidy results &
 
 # Save finalized plot to an object 
 p123 <- dwplot(m123_df, dodge_size = .08) +
-     relabel_y_axis(c("Weight", "Cylinders", "Displacement", 
-                               "Horsepower", "Gears", "Manual")) +
      theme_bw() + xlab("Coefficient Estimate") + ylab("") +
      geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
      ggtitle("Predicting Gas Mileage") +
@@ -224,7 +246,7 @@ by_trans <- by_trans %>% dplyr::select(-submodel, everything(), submodel) %>%
 
 by_trans
 
-small_multiple(by_trans, dodge_size = .06) +
+small_multiple(by_trans, dodge_size = 0.06) +
     theme_bw() + ylab("Coefficient Estimate") +
     geom_hline(yintercept = 0, colour = "grey60", linetype = 2) +
     theme(axis.text.x  = element_text(angle = 45, hjust = 1),
