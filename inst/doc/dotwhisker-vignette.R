@@ -23,6 +23,7 @@ dwplot(list(m1, m2, m3))
 dwplot(list(m1, m2, m3), show_intercept = TRUE)
 
 ## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
+
 dwplot(list(m1, m2, m3)) %>% 
     relabel_predictors(c(wt = "Weight",                       
                          cyl = "Cylinders", 
@@ -37,6 +38,7 @@ dwplot(list(m1, m2, m3)) %>%
            legend.justification=c(0, 0), legend.position=c(0, 0),
            legend.background = element_rect(colour="grey80"),
            legend.title = element_blank()) 
+
 
 ## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
 # regression compatible with tidy

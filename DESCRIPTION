@@ -1,8 +1,8 @@
 Package: dotwhisker
 Type: Package
 Title: Dot-and-Whisker Plots of Regression Results
-Version: 0.2.5
-Date: 2017-04-05
+Version: 0.2.6
+Date: 2017-04-19
 Authors@R: c(
     person("Frederick", "Solt", role = c("aut"), email = "frederick-solt@uiowa.edu"),
     person("Yue", "Hu", role = c("aut", "cre"), email = "yue-hu-1@uiowa.edu"),
@@ -21,11 +21,11 @@ LazyData: TRUE
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 NeedsCompilation: no
-Packaged: 2017-04-06 01:56:55 UTC; sammo3182
+Packaged: 2017-04-20 03:23:30 UTC; sammo3182
 Author: Frederick Solt [aut],
   Yue Hu [aut, cre],
   Oliver Keyes [ctb],
   Ben Bolker [ctb],
   Stefan Müller [ctb]
 Repository: CRAN
-Date/Publication: 2017-04-06 05:32:29 UTC
+Date/Publication: 2017-04-20 11:42:21 UTC
