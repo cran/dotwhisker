@@ -19,6 +19,10 @@ m3 <- update(m2, . ~ . + am) # and another
 
 dwplot(list(m1, m2, m3))
 
+## ----fig.width = 7-------------------------------------------------------
+dwplot(list(m1, m2, m3)) +
+    facet_grid(~model, scales="free_y")
+
 ## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
 dwplot(list(m1, m2, m3), show_intercept = TRUE)
 
@@ -46,9 +50,18 @@ m1_df <- tidy(m1) # create data.frame of regression results
 m1_df # a tidy data.frame available for dwplot
 dwplot(m1_df) #same as dwplot(m1)
 
+## ------------------------------------------------------------------------
+m1a_df <- mutate(m1_df, 
+                conf.low = estimate - qnorm(.975) * std.error,
+                conf.high = estimate + qnorm(.975) * std.error) %>% 
+    # create the lower and upper bounds
+                    select(-std.error) # remove the std.error
+
+dwplot(m1a_df)
+
 ## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
-m1_df <- tidy(m1) %>% filter(term != "(Intercept)") %>% mutate(model = "Model 1")
-m2_df <- tidy(m2) %>% filter(term != "(Intercept)") %>% mutate(model = "Model 2")
+m1_df <- tidy(m1) %>% filter(term != "gear") %>% mutate(model = "Model 1")
+m2_df <- tidy(m2) %>% filter(term != "gear") %>% mutate(model = "Model 2")
 
 two_models <- rbind(m1_df, m2_df)
 
@@ -67,7 +80,7 @@ by_trans <- mtcars %>%
 
 by_trans
 
-dwplot(by_trans, dodge_size = .05) +
+dwplot(by_trans) +
     theme_bw() + xlab("Coefficient Estimate") + ylab("") +
     geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
     ggtitle("Predicting Gas Mileage by Transmission Type") +
@@ -81,8 +94,7 @@ dwplot(by_trans, dodge_size = .05) +
                       labels = c("Automatic", "Manual"))
 
 ## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
- dwplot(by_trans, dodge_size = .05) +
-   geom_point(aes(colour = model, shape = model), size = 3) +
+ dwplot(by_trans, dot_args = list(aes(colour = model, shape = model), size = .5)) +
    theme_bw() + xlab("Coefficient Estimate") + ylab("") +
    geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
    ggtitle("Predicting Gas Mileage by Transmission Type") +
@@ -99,8 +111,6 @@ dwplot(by_trans, dodge_size = .05) +
                         labels=c("Automatic", "Manual"))
 
 ## ----fig.width = 7, message = FALSE, warning = FALSE---------------------
-library(dplyr)
-
 # the ordinal regression model is not supported by tidy
 m4 <- ordinal::clm(factor(gear) ~ wt + cyl + disp, data = mtcars)
 m4_df <- coef(summary(m4)) %>% 
@@ -148,7 +158,7 @@ m123_df <- rbind(tidy(m1) %>% mutate(model = "Model 1"),      # tidy results &
                          am = "Manual"))
 
 # Save finalized plot to an object 
-p123 <- dwplot(m123_df, dodge_size = .08) +
+p123 <- dwplot(m123_df) +
      theme_bw() + xlab("Coefficient Estimate") + ylab("") +
      geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
      ggtitle("Predicting Gas Mileage") +
@@ -248,7 +258,7 @@ by_trans <- by_trans %>% dplyr::select(-submodel, everything(), submodel) %>%
 
 by_trans
 
-small_multiple(by_trans, dodge_size = 0.06) +
+small_multiple(by_trans) +
     theme_bw() + ylab("Coefficient Estimate") +
     geom_hline(yintercept = 0, colour = "grey60", linetype = 2) +
     theme(axis.text.x  = element_text(angle = 45, hjust = 1),

@@ -652,15 +652,17 @@ model_order <- c(4, 1, 5, 2, 6, 3)
 results_df <- data.frame(term = rep(varnames[1:6], times = 6),
                          estimate = as.vector(coef.matrix[, model_order]),
                          std.error = as.vector(se.matrix[, model_order]),
-                         model = rep(model_names, each = 12),
+                         model = as.factor(rep(model_names, each = 12)),
                          submodel = rep(rep(submodel_names, each = 6), times = 3),
                          stringsAsFactors = FALSE)
 
+
 small_multiple(results_df) + 
+    scale_x_discrete(limits = model_names) + # order the models 
     theme_bw() + ylab("Coefficient Estimate") +
     geom_hline(yintercept = 0, colour = "grey60", linetype = 2) +
     theme(axis.text.x  = element_text(angle = 45, hjust = 1),
-          legend.position=c(.96, .975), legend.justification=c(1, 1), 
+          legend.position=c(.97, .99), legend.justification=c(1, 1), 
           legend.title = element_text(size=8),
           legend.background = element_rect(color="gray90"),
           legend.margin = unit(-3, "pt"),

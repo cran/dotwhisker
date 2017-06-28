@@ -1,8 +1,13 @@
+## Version 0.3.0
+1. Rewrote the plotting functions based on the `ggstance` functions. The new `dwplot` allows cooperating with more `ggplot` functions, such as `facet_*`. 
+1. Drew whiskers based on the CI estimates directly from the model output. See more details in [`tidy.lm`](https://github.com/tidyverse/broom/blob/master/R/lm_tidiers.R) and [`confint`](https://github.com/cran/MASS/blob/master/R/confint.R).
+1. Clarified the description of `by_2sd`.
+
 ## Version 0.2.6
 1. Fixed the bug in `relabel_predictors`.
 
 ## Version 0.2.5
-1. Expanded capabilities of `relabel_predictors`.  `relabel_predictors` now accepts plots as well as tidy dataframes as input; that is, it may now be used both before and after calls to `dwplot`.
+1. Expanded capabilities of `relabel_predictors`. `relabel_predictors` now accepts plots as well as tidy dataframes as input; that is, it may now be used both before and after calls to `dwplot`.
 1. Deprecated `relabel_y_axis`.  It is easy to mistakenly mislabel variables with `relabel_y_axis`, and it has a conflict with `add_brackets` in single-model plots. 
 1. Provided example of using multiple shapes for multiple models in vignette.
 1. `dwplot` works for `polr` projects.
