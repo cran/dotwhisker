@@ -32,13 +32,13 @@ m1 <- lm(mpg ~ wt + cyl + disp + gear, data = mtcars)
 dwplot(m1)
 ```
 
-By default, the whiskers span the 95\% confidence interval.  To change the width of the confidence interval, use the `alpha` argument:
+By default, the whiskers span the 95\% confidence interval.  To change the width of the confidence interval, specify a `conf.level` argument to pass to `broom::tidy()`:
 
 ```{r fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE}
-dwplot(m1, alpha = .01)  # using 99% CI
+dwplot(m1, conf.level = .99)  # using 99% CI
 ```
 
-Plotting the results of more than one regression model is just as easy. Just pass the model objects to `dwplot` as a list.  The `dodge_size` argument is used to adjust the space between the estimates of one variable when multiple models are presented in a single plot.  Its default value of .15 will usually be fine, but, depending on the dimensions of the desired plot, more pleasing results may be achieved by setting `dodge_size` to lower values when the plotted results include a relatively small number of predictors or to higher values when many models appear on the same plot.
+Plotting the results of more than one regression model is just as easy.  Just pass the model objects to `dwplot` as a list.  The `dodge_size` argument is used to adjust the space between the estimates of one variable when multiple models are presented in a single plot.  Its default value of .4 will usually be fine, but, depending on the dimensions of the desired plot, more pleasing results may be achieved by setting `dodge_size` to lower values when the plotted results include a relatively small number of predictors or to higher values when many models appear on the same plot.
 
 ```{r fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE}
 m2 <- update(m1, . ~ . + hp) # add another predictor
@@ -46,15 +46,6 @@ m3 <- update(m2, . ~ . + am) # and another
 
 dwplot(list(m1, m2, m3))
 ```
-
-`dwplot` also allows users to compare the result in a parallel way, as shown following. 
-
-```{r  fig.width = 7}
-dwplot(list(m1, m2, m3)) +
-    facet_grid(~model, scales="free_y")
-```
-
-
 
 Model intercepts are rarely theoretically interesting [see @Kastellec2007, 765], so they are excluded by `dwplot` by default.  They are easy to include if desired, however, by setting the `show_intercept` argument to true.
 
@@ -77,7 +68,8 @@ dwplot(list(m1, m2, m3)) %>%
      geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
      ggtitle("Predicting Gas Mileage") +
      theme(plot.title = element_text(face="bold"),
-           legend.justification=c(0, 0), legend.position=c(0, 0),
+           legend.position = c(0.007, 0.01),
+           legend.justification = c(0, 0), 
            legend.background = element_rect(colour="grey80"),
            legend.title = element_blank()) 
 
@@ -89,7 +81,7 @@ There are many other packages (e.g., `coefplot`) that have the ability to draw d
 
 
 ## Advanced Use: Plotting Results Stored in a Tidy Data Frame 
-In addition to model objects, the input for `dwplot` may be a tidy data frame that includes three columns: `term`, that is, the variable name; `estimate`, the regression coefficients or other quantity of interest; and `std.error`, the standard errors associated with these estimates. In place of `std.error` one may substitute `conf.low`, the lower bounds of the confidence intervals of the estimates, and `conf.high`, the corresponding upper bounds. As noted above, `broom::tidy` [@Robinson2015] produces such a data frame of estimates for many common classes of model objects (indeed, `dwplot` was written to expect a data.frame with the columns `term`, `estimate`, and `std.error` because this is the format of the output produced by `tidy`). When more than one model's results are to be plotted, an additional column `model` that identifies the two models must be added to the data frame (alternate names for this last column may be specified by using the `model_name` argument). 
+In addition to model objects, the input for `dwplot` may be a tidy data frame that includes three columns: `term`, that is, the variable name; `estimate`, the regression coefficients or other quantity of interest; and `std.error`, the standard errors associated with these estimates. In place of `std.error` one may substitute `lb`, the lower bounds of the confidence intervals of the estimates, and `ub`, the corresponding upper bounds. As noted above, `broom::tidy` [@Robinson2015] produces such a data frame of estimates for many common classes of model objects (indeed, `dwplot` was written to expect a data.frame with the columns `term`, `estimate`, and `std.error` because this is the format of the output produced by `tidy`). When more than one model's results are to be plotted, an additional column `model` that identifies the two models must be added to the data frame (alternate names for this last column may be specified by using the `model_name` argument). 
 
 ```{r fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE}
 # regression compatible with tidy
@@ -98,27 +90,11 @@ m1_df # a tidy data.frame available for dwplot
 dwplot(m1_df) #same as dwplot(m1)
 ```
 
-
-If the lower and upper bounds of the uncertainty intervals are already estimated in the model outputs (e.g., in Bayesian analyses), one can ask `dwplot` to use them by named the columns as `conf.low` and `conf.high`.
-In the following case, we created the `conf.low` and `conf.high` based on the `std.error`. Then you can see, as long as the `conf.low` and `conf.high` are defined, `dwplot` can still replicate the preceding plot when the `std.error` is removed.
-
-```{r}
-m1a_df <- mutate(m1_df, 
-                conf.low = estimate - qnorm(.975) * std.error,
-                conf.high = estimate + qnorm(.975) * std.error) %>% 
-    # create the lower and upper bounds
-                    select(-std.error) # remove the std.error
-
-dwplot(m1a_df)
-```
-
-
-
-Using `tidy` can be helpful when one wishes to omit certain model estimates from the plot.  To illustrate, we drop the intercept:
+Using `tidy` can be helpful when one wishes to omit certain model estimates from the plot.  To illustrate, we drop the intercept (although this is in fact done by `dwplot` automatically by default):
 
 ```{r fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE}
-m1_df <- tidy(m1) %>% filter(term != "gear") %>% mutate(model = "Model 1")
-m2_df <- tidy(m2) %>% filter(term != "gear") %>% mutate(model = "Model 2")
+m1_df <- tidy(m1) %>% filter(term != "(Intercept)") %>% mutate(model = "Model 1")
+m2_df <- tidy(m2) %>% filter(term != "(Intercept)") %>% mutate(model = "Model 2")
 
 two_models <- rbind(m1_df, m2_df)
 
@@ -134,7 +110,7 @@ by_trans <- mtcars %>%
     do(tidy(lm(mpg ~ wt + cyl + disp + gear, data = .))) %>% # run model on each grp
     rename(model=am) %>%                                     # make model variable
     relabel_predictors(c(wt = "Weight",                      # relabel predictors
-                     cyl = "Cylinder",
+                     cyl = "Cylinders",
                      disp = "Displacement",
                      gear = "Gear"))
 
@@ -145,7 +121,8 @@ dwplot(by_trans) +
     geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
     ggtitle("Predicting Gas Mileage by Transmission Type") +
     theme(plot.title = element_text(face="bold"),
-          legend.justification=c(0, 0), legend.position=c(0, 0),
+          legend.position = c(0.007, 0.01),
+          legend.justification=c(0, 0),
           legend.background = element_rect(colour="grey80"),
           legend.title.align = .5) +
     scale_colour_grey(start = .3, end = .7,
@@ -159,23 +136,23 @@ Also note in the above example the additional manner of using the `relabel_predi
 Additionally, one can change the shape of the point estimate instead of using different colors. This can be useful, for example, when a plot needs to be printed in black and white.
 
 ```{r fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE}
- dwplot(by_trans, dot_args = list(aes(colour = model, shape = model), size = .5)) +
-   theme_bw() + xlab("Coefficient Estimate") + ylab("") +
-   geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
-   ggtitle("Predicting Gas Mileage by Transmission Type") +
-   theme(plot.title = element_text(face="bold"),
-         legend.justification=c(0, 0), legend.position=c(0, 0),
-         legend.background = element_rect(colour="grey80"),
-         legend.title.align = .5) +
-   scale_colour_grey(start = .1, end = .1, # if start and end same value, use same colour for all models 
-                     name  ="Model", 
-                     breaks=c(0, 1),
-                     labels=c("Automatic", "Manual")) +
-   scale_shape_discrete(name  ="Model",
-                        breaks=c(0, 1),
-                        labels=c("Automatic", "Manual"))
+dwplot(by_trans, dot_args = list(aes(colour = model, shape = model))) +
+    theme_bw() + xlab("Coefficient Estimate") + ylab("") +
+    geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
+    ggtitle("Predicting Gas Mileage by Transmission Type") +
+    theme(plot.title = element_text(face="bold"),
+          legend.position = c(0.007, 0.01),
+          legend.justification=c(0, 0),
+          legend.background = element_rect(colour="grey80"),
+          legend.title.align = .5) +
+    scale_colour_grey(start = .1, end = .1, # if start and end same value, use same colour for all models 
+                      name  ="Model", 
+                      breaks=c(0, 1),
+                      labels=c("Automatic", "Manual")) +
+    scale_shape_discrete(name  ="Model",
+                         breaks=c(0, 1),
+                         labels=c("Automatic", "Manual"))
 ```
-
 
 It is also easy to plot classes of model objects that are not supported by `tidy`: one simply extracts the results from the model object and builds the data frame to pass to `dwplot` oneself.  Many functions generate results that can be extracted by `coef()`.
 
@@ -211,70 +188,91 @@ m5_margin <- data.frame(m5$mfxest) %>%
   tibble::rownames_to_column("term") %>% 
   rename(estimate = dF.dx, std.error = Std..Err.)
 m5_margin
+
 dwplot(m5_margin)
 ```
 
 
 ## Advanced Use: Grouping Predictors 
-It is frequently desirable to convey that the predictors in a model depicted in a dot-and-whisker plot form groups of some sort.  This can be achieved by passing the finalized plot to the `add_brackets` function.  Note that `add_brackets` outputs a `gtable` rather than a `ggplot` object.  Therefore, the output is displayed using `grid.arrange` and saved using `ggsave`.
+It is frequently desirable to convey that the predictors in a model depicted in a dot-and-whisker plot form groups of some sort.  This can be achieved by passing the finalized plot to the `add_brackets` function. To pass the finalized plot to `add_brackets` without creating an intermediate object, simply wrap the code that generates it in braces (`{` and `}`): 
 
 ```{r fig.width = 7, fig.height = 5, warning = FALSE, message = FALSE}
-# Define order for predictors that can be grouped
-reordered_vars <- c("wt", "cyl", "disp", "hp", "gear", "am")
-
-# Generate a tidy data frame
-m123_df <- rbind(tidy(m1) %>% mutate(model = "Model 1"),      # tidy results &
-                 tidy(m2) %>% mutate(model = "Model 2"),      # add a variable to
-                 tidy(m3) %>% mutate(model = "Model 3")) %>%  # identify model.
-    filter(term != "(Intercept)") %>%                         # remove intercepts
-    by_2sd(mtcars) %>%                                        # rescale coefficients
-    mutate(term = factor(term, levels = reordered_vars)) %>%  # make term a factor &
-    group_by(model) %>% arrange(term) %>%                     # reorder
-    relabel_predictors(c(wt = "Weight",                       # relabel predictors
-                         cyl = "Cylinders", 
-                         disp = "Displacement", 
-                         hp = "Horsepower", 
-                         gear = "Gears", 
-                         am = "Manual"))
-
-# Save finalized plot to an object 
-p123 <- dwplot(m123_df) +
-     theme_bw() + xlab("Coefficient Estimate") + ylab("") +
-     geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
-     ggtitle("Predicting Gas Mileage") +
-     theme(plot.title = element_text(face="bold"),
-           legend.justification=c(1, 1), legend.position=c(1, 1),
-           legend.background = element_rect(colour="grey80"),
-           legend.title = element_blank()) 
-
 # Create list of brackets (label, topmost included predictor, bottommost included predictor)
 three_brackets <- list(c("Overall", "Weight", "Weight"), 
                        c("Engine", "Cylinders", "Horsepower"),
                        c("Transmission", "Gears", "Manual"))
 
-g123 <- p123 %>% add_brackets(three_brackets)
+{dwplot(list(m1, m2, m3)) %>% 
+    relabel_predictors(c(wt = "Weight",                       # relabel predictors
+                         cyl = "Cylinders", 
+                         disp = "Displacement", 
+                         hp = "Horsepower", 
+                         gear = "Gears", 
+                         am = "Manual")) +
+    theme_bw() + xlab("Coefficient Estimate") + ylab("") +
+    geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
+    ggtitle("Predicting Gas Mileage") +
+    theme(plot.title = element_text(face="bold"),
+          legend.position = c(0.993, 0.99),
+          legend.justification=c(1, 1),
+          legend.background = element_rect(colour="grey80"),
+          legend.title = element_blank())} %>% 
+    add_brackets(three_brackets)
 
-# to save to file (not run)
-# ggsave(file = "plot.pdf", g123)
-
-
-grid.arrange(g123)    # to display
 ```
 
+## Advanced Use: Presenting Regression Results as Normal Distributions
+
+[Inspired by](https://twitter.com/BenJamesEdwards/status/979751070254747650) the way [Edwards, Jacobs, and Forrest](https://bjedwards.github.io/assets/papers/EdwardsRisky.pdf) [-@Edwards2016, 5] displayed regression coefficients as normal distributions, `dotwhisker` now provides an easy way to make similar plots.  To create such plots, call `dwplot` as always but include the argument `style = "distribution"`, then customize with other `dotwhisker` functions and `ggplot` additions as usual:
+
+```{r fig.width = 6, fig.height = 9, warning = FALSE, message = FALSE}
+
+by_transmission_brackets <- list(c("Overall", "Weight", "Weight"), 
+                       c("Engine", "Cylinders", "Horsepower"),
+                       c("Transmission", "Gears", "Gears"))
+        
+{mtcars %>%
+    split(.$am) %>%
+    purrr::map(~ lm(mpg ~ wt + cyl + disp + hp + gear, data = .x)) %>%
+    dwplot(style = "distribution") %>%
+    relabel_predictors(wt = "Weight",
+                         cyl = "Cylinders",
+                         disp = "Displacement",
+                         hp = "Horsepower",
+                         gear = "Gears") +
+    theme_bw() + xlab("Coefficient") + ylab("") +
+    geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
+    theme(legend.position = c(.995, .99),
+          legend.justification = c(1, 1),
+          legend.background = element_rect(colour="grey80"),
+          legend.title.align = .5) +
+    scale_colour_grey(start = .8, end = .4,
+                      name = "Transmission",
+                      breaks = c("Model 0", "Model 1"),
+                      labels = c("Automatic", "Manual")) +
+    scale_fill_grey(start = .8, end = .4,
+                    name = "Transmission",
+                    breaks = c("Model 0", "Model 1"),
+                    labels = c("Automatic", "Manual"))} %>%
+    add_brackets(by_transmission_brackets) +
+    ggtitle("Predicting Gas Mileage by Transmission Type") +
+    theme(plot.title = element_text(face = "bold", hjust = 0.5))
+
+```
 
 ## Advanced Use: The 'Secret Weapon' and 'Small Multiple' Plots 
-A variation of dot-and-whisker plot is used to compare the estimated coefficients for a single predictor across many models or datasets: Andrew Gelman calls such plots [the 'secret weapon'](http://andrewgelman.com/2005/03/07/the_secret_weap/).  They are easy to make with the `secret_weapon` function.  Like `dwplot`, the function accepts both lists of model objects and tidy data frames as input, and the size of the confidence intervals can be adjusted with the `alpha` argument.  The `var` argument is used to specify the predictor for which results are to be plotted.
+A variation of dot-and-whisker plot is used to compare the estimated coefficients for a single predictor across many models or datasets: Andrew Gelman calls such plots [the 'secret weapon'](http://andrewgelman.com/2005/03/07/the_secret_weap/).  They are easy to make with the `secret_weapon` function.  Like `dwplot`, the function accepts both lists of model objects and tidy data frames as input. The `var` argument is used to specify the predictor for which results are to be plotted.
 
 ```{r fig.width = 7, fig.height = 5, warning = FALSE, message = FALSE}
 data(diamonds)
 
 # Estimate models for many subsets of data, put results in a tidy data.frame
 by_clarity <- diamonds %>% group_by(clarity) %>%
- do(tidy(lm(price ~ carat + cut + color, data = .))) %>%
+ do(tidy(lm(price ~ carat + cut + color, data = .), conf.int = .99)) %>%
  ungroup %>% rename(model = clarity)
 
 # Deploy the secret weapon
-secret_weapon(by_clarity, var = "carat", alpha = .01) + 
+secret_weapon(by_clarity, var = "carat") + 
     xlab("Estimated Coefficient (Dollars)") + ylab("Diamond Clarity") +
     ggtitle("Estimated Coefficients for Diamond Size Across Clarity Grades") +
     theme(plot.title = element_text(face="bold"))
@@ -309,12 +307,13 @@ m123456_df <- m123456_df %>%
 small_multiple(m123456_df) +
   theme_bw() + ylab("Coefficient Estimate") +
   geom_hline(yintercept = 0, colour = "grey60", linetype = 2) +
-  ggtitle("Predicting Gas Mileage") +
-  theme(plot.title = element_text(face = "bold"), legend.position = "none",
-    axis.text.x  = element_text(angle = 60, hjust = 1)) 
+  ggtitle("Predicting Mileage") +
+  theme(plot.title = element_text(face = "bold"), 
+        legend.position = "none",
+        axis.text.x = element_text(angle = 60, hjust = 1)) 
 ```
 
-To facilitate comparisons across, e.g., results generated across different samples, one can cluster the results presented in a small multiple plot.  To do so, results that should be clustered should have the same value of `model`, but should be assigned different values of an additional `submodel` variable included in the tidy data frame passed to `small_multiple`. (We also replicate three examples in @Kastellec2007 with `dotwhisker` in a separate package document, "kl2007_examples".)
+To facilitate comparisons across, e.g., results generated across different samples, one can cluster the results presented in a small multiple plot.  To do so, results that should be clustered should have the same value of `model`, but should be assigned different values of an additional `submodel` variable included in the tidy data frame passed to `small_multiple`. (We also replicate three examples in @Kastellec2007 with `dotwhisker` in a separate vignette, "kl2007_examples".)
 
 ```{r fig.width = 3.5, fig.height = 8, warning = FALSE, message = FALSE}
 # Generate a tidy data.frame of regression results from five models on
@@ -322,41 +321,45 @@ To facilitate comparisons across, e.g., results generated across different sampl
 ordered_vars <- c("wt", "cyl", "disp", "hp", "gear")
 mod <- "mpg ~ wt"
 
-by_trans <- mtcars %>% group_by(am) %>%  # group data by transmission
-    do(tidy(lm(mod, data = .))) %>%        # run model on each group
-    rename(submodel = am) %>%              # make submodel variable
-    mutate(model = "Model 1") %>%          # make model variable
+by_trans2 <- mtcars %>%
+    group_by(am) %>%                        # group data by transmission
+    do(tidy(lm(mod, data = .))) %>%         # run model on each group
+    rename(submodel = am) %>%               # make submodel variable
+    mutate(model = "Model 1") %>%           # make model variable
     ungroup()
 
-
 for (i in 2:5) {
-  mod <- paste(mod, "+", ordered_vars[i])
-  by_trans <- rbind(by_trans, mtcars %>% group_by(am) %>%
-                   do(tidy(lm(mod, data = .))) %>%
-                   rename(submodel = am) %>%
-                   mutate(model = paste("Model", i)) %>% 
-                       ungroup())
+    mod <- paste(mod, "+", ordered_vars[i])
+    by_trans2 <- rbind(by_trans2, mtcars %>% 
+                           group_by(am) %>%
+                           do(tidy(lm(mod, data = .))) %>%
+                           rename(submodel = am) %>%
+                           mutate(model = paste("Model", i)) %>% 
+                           ungroup())
 }
 
 # Relabel predictors (they will appear as facet labels)
-by_trans <- by_trans %>% dplyr::select(-submodel, everything(), submodel) %>% 
-  relabel_predictors(c("(Intercept)" = "Intercept",
-                     wt = "Weight",
-                     cyl = "Cylinders",
-                     disp = "Displacement",
-                     hp = "Horsepower",
-                     gear = "Gears"))
+by_trans2 <- by_trans2 %>%
+    select(-submodel, everything(), submodel) %>% 
+    relabel_predictors(c("(Intercept)" = "Intercept",
+                         wt = "Weight",
+                         cyl = "Cylinders",
+                         disp = "Displacement",
+                         hp = "Horsepower",
+                         gear = "Gears"))
 
-by_trans
+by_trans2
 
-small_multiple(by_trans) +
-    theme_bw() + ylab("Coefficient Estimate") +
+small_multiple(by_trans2) +
+    theme_bw() + 
+    ylab("Coefficient Estimate") +
     geom_hline(yintercept = 0, colour = "grey60", linetype = 2) +
     theme(axis.text.x  = element_text(angle = 45, hjust = 1),
-          legend.position=c(0.06, 0.02), legend.justification=c(0, 0),
+          legend.position = c(0.02, 0.008), 
+          legend.justification=c(0, 0),
           legend.title = element_text(size=8),
           legend.background = element_rect(color="gray90"),
-          legend.margin = unit(-4, "pt"),
+          legend.spacing = unit(-4, "pt"),
           legend.key.size = unit(10, "pt")) +
     scale_colour_hue(name = "Transmission",
                      breaks = c(0, 1),
@@ -384,7 +387,7 @@ University of Iowa,
 
 Email: <frederick-solt@uiowa.edu>
 
-Website: <http://myweb.uiowa.edu/fsolt>
+Website: <http://fsolt.org>
 
 <br></br>
 
@@ -400,7 +403,7 @@ University of Iowa,
 
 Email: <yue-hu-1@uiowa.edu>
 
-Website: <http://clas.uiowa.edu/polisci/people/yue-hu>
+Website: <https://sammo3182.github.io>
 
 ## References
 

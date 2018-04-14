@@ -11,17 +11,13 @@ m1 <- lm(mpg ~ wt + cyl + disp + gear, data = mtcars)
 dwplot(m1)
 
 ## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
-dwplot(m1, alpha = .01)  # using 99% CI
+dwplot(m1, conf.level = .99)  # using 99% CI
 
 ## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
 m2 <- update(m1, . ~ . + hp) # add another predictor
 m3 <- update(m2, . ~ . + am) # and another 
 
 dwplot(list(m1, m2, m3))
-
-## ----fig.width = 7-------------------------------------------------------
-dwplot(list(m1, m2, m3)) +
-    facet_grid(~model, scales="free_y")
 
 ## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
 dwplot(list(m1, m2, m3), show_intercept = TRUE)
@@ -39,7 +35,8 @@ dwplot(list(m1, m2, m3)) %>%
      geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
      ggtitle("Predicting Gas Mileage") +
      theme(plot.title = element_text(face="bold"),
-           legend.justification=c(0, 0), legend.position=c(0, 0),
+           legend.position = c(0.007, 0.01),
+           legend.justification = c(0, 0), 
            legend.background = element_rect(colour="grey80"),
            legend.title = element_blank()) 
 
@@ -50,18 +47,9 @@ m1_df <- tidy(m1) # create data.frame of regression results
 m1_df # a tidy data.frame available for dwplot
 dwplot(m1_df) #same as dwplot(m1)
 
-## ------------------------------------------------------------------------
-m1a_df <- mutate(m1_df, 
-                conf.low = estimate - qnorm(.975) * std.error,
-                conf.high = estimate + qnorm(.975) * std.error) %>% 
-    # create the lower and upper bounds
-                    select(-std.error) # remove the std.error
-
-dwplot(m1a_df)
-
 ## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
-m1_df <- tidy(m1) %>% filter(term != "gear") %>% mutate(model = "Model 1")
-m2_df <- tidy(m2) %>% filter(term != "gear") %>% mutate(model = "Model 2")
+m1_df <- tidy(m1) %>% filter(term != "(Intercept)") %>% mutate(model = "Model 1")
+m2_df <- tidy(m2) %>% filter(term != "(Intercept)") %>% mutate(model = "Model 2")
 
 two_models <- rbind(m1_df, m2_df)
 
@@ -74,7 +62,7 @@ by_trans <- mtcars %>%
     do(tidy(lm(mpg ~ wt + cyl + disp + gear, data = .))) %>% # run model on each grp
     rename(model=am) %>%                                     # make model variable
     relabel_predictors(c(wt = "Weight",                      # relabel predictors
-                     cyl = "Cylinder",
+                     cyl = "Cylinders",
                      disp = "Displacement",
                      gear = "Gear"))
 
@@ -85,7 +73,8 @@ dwplot(by_trans) +
     geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
     ggtitle("Predicting Gas Mileage by Transmission Type") +
     theme(plot.title = element_text(face="bold"),
-          legend.justification=c(0, 0), legend.position=c(0, 0),
+          legend.position = c(0.007, 0.01),
+          legend.justification=c(0, 0),
           legend.background = element_rect(colour="grey80"),
           legend.title.align = .5) +
     scale_colour_grey(start = .3, end = .7,
@@ -94,21 +83,22 @@ dwplot(by_trans) +
                       labels = c("Automatic", "Manual"))
 
 ## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
- dwplot(by_trans, dot_args = list(aes(colour = model, shape = model), size = .5)) +
-   theme_bw() + xlab("Coefficient Estimate") + ylab("") +
-   geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
-   ggtitle("Predicting Gas Mileage by Transmission Type") +
-   theme(plot.title = element_text(face="bold"),
-         legend.justification=c(0, 0), legend.position=c(0, 0),
-         legend.background = element_rect(colour="grey80"),
-         legend.title.align = .5) +
-   scale_colour_grey(start = .1, end = .1, # if start and end same value, use same colour for all models 
-                     name  ="Model", 
-                     breaks=c(0, 1),
-                     labels=c("Automatic", "Manual")) +
-   scale_shape_discrete(name  ="Model",
-                        breaks=c(0, 1),
-                        labels=c("Automatic", "Manual"))
+dwplot(by_trans, dot_args = list(aes(colour = model, shape = model))) +
+    theme_bw() + xlab("Coefficient Estimate") + ylab("") +
+    geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
+    ggtitle("Predicting Gas Mileage by Transmission Type") +
+    theme(plot.title = element_text(face="bold"),
+          legend.position = c(0.007, 0.01),
+          legend.justification=c(0, 0),
+          legend.background = element_rect(colour="grey80"),
+          legend.title.align = .5) +
+    scale_colour_grey(start = .1, end = .1, # if start and end same value, use same colour for all models 
+                      name  ="Model", 
+                      breaks=c(0, 1),
+                      labels=c("Automatic", "Manual")) +
+    scale_shape_discrete(name  ="Model",
+                         breaks=c(0, 1),
+                         labels=c("Automatic", "Manual"))
 
 ## ----fig.width = 7, message = FALSE, warning = FALSE---------------------
 # the ordinal regression model is not supported by tidy
@@ -136,60 +126,77 @@ m5_margin <- data.frame(m5$mfxest) %>%
   tibble::rownames_to_column("term") %>% 
   rename(estimate = dF.dx, std.error = Std..Err.)
 m5_margin
+
 dwplot(m5_margin)
 
 ## ----fig.width = 7, fig.height = 5, warning = FALSE, message = FALSE-----
-# Define order for predictors that can be grouped
-reordered_vars <- c("wt", "cyl", "disp", "hp", "gear", "am")
-
-# Generate a tidy data frame
-m123_df <- rbind(tidy(m1) %>% mutate(model = "Model 1"),      # tidy results &
-                 tidy(m2) %>% mutate(model = "Model 2"),      # add a variable to
-                 tidy(m3) %>% mutate(model = "Model 3")) %>%  # identify model.
-    filter(term != "(Intercept)") %>%                         # remove intercepts
-    by_2sd(mtcars) %>%                                        # rescale coefficients
-    mutate(term = factor(term, levels = reordered_vars)) %>%  # make term a factor &
-    group_by(model) %>% arrange(term) %>%                     # reorder
-    relabel_predictors(c(wt = "Weight",                       # relabel predictors
-                         cyl = "Cylinders", 
-                         disp = "Displacement", 
-                         hp = "Horsepower", 
-                         gear = "Gears", 
-                         am = "Manual"))
-
-# Save finalized plot to an object 
-p123 <- dwplot(m123_df) +
-     theme_bw() + xlab("Coefficient Estimate") + ylab("") +
-     geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
-     ggtitle("Predicting Gas Mileage") +
-     theme(plot.title = element_text(face="bold"),
-           legend.justification=c(1, 1), legend.position=c(1, 1),
-           legend.background = element_rect(colour="grey80"),
-           legend.title = element_blank()) 
-
 # Create list of brackets (label, topmost included predictor, bottommost included predictor)
 three_brackets <- list(c("Overall", "Weight", "Weight"), 
                        c("Engine", "Cylinders", "Horsepower"),
                        c("Transmission", "Gears", "Manual"))
 
-g123 <- p123 %>% add_brackets(three_brackets)
+{dwplot(list(m1, m2, m3)) %>% 
+    relabel_predictors(c(wt = "Weight",                       # relabel predictors
+                         cyl = "Cylinders", 
+                         disp = "Displacement", 
+                         hp = "Horsepower", 
+                         gear = "Gears", 
+                         am = "Manual")) +
+    theme_bw() + xlab("Coefficient Estimate") + ylab("") +
+    geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
+    ggtitle("Predicting Gas Mileage") +
+    theme(plot.title = element_text(face="bold"),
+          legend.position = c(0.993, 0.99),
+          legend.justification=c(1, 1),
+          legend.background = element_rect(colour="grey80"),
+          legend.title = element_blank())} %>% 
+    add_brackets(three_brackets)
 
-# to save to file (not run)
-# ggsave(file = "plot.pdf", g123)
 
+## ----fig.width = 6, fig.height = 9, warning = FALSE, message = FALSE-----
 
-grid.arrange(g123)    # to display
+by_transmission_brackets <- list(c("Overall", "Weight", "Weight"), 
+                       c("Engine", "Cylinders", "Horsepower"),
+                       c("Transmission", "Gears", "Gears"))
+        
+{mtcars %>%
+    split(.$am) %>%
+    purrr::map(~ lm(mpg ~ wt + cyl + disp + hp + gear, data = .x)) %>%
+    dwplot(style = "distribution") %>%
+    relabel_predictors(wt = "Weight",
+                         cyl = "Cylinders",
+                         disp = "Displacement",
+                         hp = "Horsepower",
+                         gear = "Gears") +
+    theme_bw() + xlab("Coefficient") + ylab("") +
+    geom_vline(xintercept = 0, colour = "grey60", linetype = 2) +
+    theme(legend.position = c(.995, .99),
+          legend.justification = c(1, 1),
+          legend.background = element_rect(colour="grey80"),
+          legend.title.align = .5) +
+    scale_colour_grey(start = .8, end = .4,
+                      name = "Transmission",
+                      breaks = c("Model 0", "Model 1"),
+                      labels = c("Automatic", "Manual")) +
+    scale_fill_grey(start = .8, end = .4,
+                    name = "Transmission",
+                    breaks = c("Model 0", "Model 1"),
+                    labels = c("Automatic", "Manual"))} %>%
+    add_brackets(by_transmission_brackets) +
+    ggtitle("Predicting Gas Mileage by Transmission Type") +
+    theme(plot.title = element_text(face = "bold", hjust = 0.5))
+
 
 ## ----fig.width = 7, fig.height = 5, warning = FALSE, message = FALSE-----
 data(diamonds)
 
 # Estimate models for many subsets of data, put results in a tidy data.frame
 by_clarity <- diamonds %>% group_by(clarity) %>%
- do(tidy(lm(price ~ carat + cut + color, data = .))) %>%
+ do(tidy(lm(price ~ carat + cut + color, data = .), conf.int = .99)) %>%
  ungroup %>% rename(model = clarity)
 
 # Deploy the secret weapon
-secret_weapon(by_clarity, var = "carat", alpha = .01) + 
+secret_weapon(by_clarity, var = "carat") + 
     xlab("Estimated Coefficient (Dollars)") + ylab("Diamond Clarity") +
     ggtitle("Estimated Coefficients for Diamond Size Across Clarity Grades") +
     theme(plot.title = element_text(face="bold"))
@@ -221,9 +228,10 @@ m123456_df <- m123456_df %>%
 small_multiple(m123456_df) +
   theme_bw() + ylab("Coefficient Estimate") +
   geom_hline(yintercept = 0, colour = "grey60", linetype = 2) +
-  ggtitle("Predicting Gas Mileage") +
-  theme(plot.title = element_text(face = "bold"), legend.position = "none",
-    axis.text.x  = element_text(angle = 60, hjust = 1)) 
+  ggtitle("Predicting Mileage") +
+  theme(plot.title = element_text(face = "bold"), 
+        legend.position = "none",
+        axis.text.x = element_text(angle = 60, hjust = 1)) 
 
 ## ----fig.width = 3.5, fig.height = 8, warning = FALSE, message = FALSE----
 # Generate a tidy data.frame of regression results from five models on
@@ -231,41 +239,45 @@ small_multiple(m123456_df) +
 ordered_vars <- c("wt", "cyl", "disp", "hp", "gear")
 mod <- "mpg ~ wt"
 
-by_trans <- mtcars %>% group_by(am) %>%  # group data by transmission
-    do(tidy(lm(mod, data = .))) %>%        # run model on each group
-    rename(submodel = am) %>%              # make submodel variable
-    mutate(model = "Model 1") %>%          # make model variable
+by_trans2 <- mtcars %>%
+    group_by(am) %>%                        # group data by transmission
+    do(tidy(lm(mod, data = .))) %>%         # run model on each group
+    rename(submodel = am) %>%               # make submodel variable
+    mutate(model = "Model 1") %>%           # make model variable
     ungroup()
 
-
 for (i in 2:5) {
-  mod <- paste(mod, "+", ordered_vars[i])
-  by_trans <- rbind(by_trans, mtcars %>% group_by(am) %>%
-                   do(tidy(lm(mod, data = .))) %>%
-                   rename(submodel = am) %>%
-                   mutate(model = paste("Model", i)) %>% 
-                       ungroup())
+    mod <- paste(mod, "+", ordered_vars[i])
+    by_trans2 <- rbind(by_trans2, mtcars %>% 
+                           group_by(am) %>%
+                           do(tidy(lm(mod, data = .))) %>%
+                           rename(submodel = am) %>%
+                           mutate(model = paste("Model", i)) %>% 
+                           ungroup())
 }
 
 # Relabel predictors (they will appear as facet labels)
-by_trans <- by_trans %>% dplyr::select(-submodel, everything(), submodel) %>% 
-  relabel_predictors(c("(Intercept)" = "Intercept",
-                     wt = "Weight",
-                     cyl = "Cylinders",
-                     disp = "Displacement",
-                     hp = "Horsepower",
-                     gear = "Gears"))
+by_trans2 <- by_trans2 %>%
+    select(-submodel, everything(), submodel) %>% 
+    relabel_predictors(c("(Intercept)" = "Intercept",
+                         wt = "Weight",
+                         cyl = "Cylinders",
+                         disp = "Displacement",
+                         hp = "Horsepower",
+                         gear = "Gears"))
 
-by_trans
+by_trans2
 
-small_multiple(by_trans) +
-    theme_bw() + ylab("Coefficient Estimate") +
+small_multiple(by_trans2) +
+    theme_bw() + 
+    ylab("Coefficient Estimate") +
     geom_hline(yintercept = 0, colour = "grey60", linetype = 2) +
     theme(axis.text.x  = element_text(angle = 45, hjust = 1),
-          legend.position=c(0.06, 0.02), legend.justification=c(0, 0),
+          legend.position = c(0.02, 0.008), 
+          legend.justification=c(0, 0),
           legend.title = element_text(size=8),
           legend.background = element_rect(color="gray90"),
-          legend.margin = unit(-4, "pt"),
+          legend.spacing = unit(-4, "pt"),
           legend.key.size = unit(10, "pt")) +
     scale_colour_hue(name = "Transmission",
                      breaks = c(0, 1),

@@ -1,3 +1,6 @@
+## ----include=FALSE-------------------------------------------------------
+library(gridExtra) # for grid.arrange() in KL code
+
 ## ----fig.width=7, fig.height=7, warning=FALSE, message=FALSE-------------
 #Create vectors for coefficients, standard errors and variable names 
     #we place coefficient as last element in each vector rather than 1st
@@ -166,8 +169,9 @@ results_df <- data.frame(term = rep(var.names, times = 2),
                          stringsAsFactors = FALSE)
 
 # Draw dot-and-whisker plot
-p <- results_df %>% dwplot + theme_bw() +
-    theme(legend.justification=c(0, 1), legend.position=c(0, 1),
+p <- dwplot(results_df) +
+    theme_bw() +
+    theme(legend.justification=c(.02, .993), legend.position=c(.02, .99),
            legend.title = element_blank(), legend.background =
               element_rect(color="gray90")) + 
     xlab("Logit Coefficients") +
@@ -175,9 +179,9 @@ p <- results_df %>% dwplot + theme_bw() +
     ggtitle("Electoral Incentives and LDP Post Allocation\nPekkanen, Nyblade, and Krause (2006)\nvia Kastellec and Leoni (2007)")
 
 # Add brackets
-grid.arrange(p %>% add_brackets(list(c("MP Type", "Zombie", "Costa Rican in PR"), 
-                 c("Misc Controls", "Urban-Rural Index", "Legal Professional"),
-                 c("Seniority", "1st Term", "12th Term"))))
+p %>% add_brackets(list(c("MP Type", "Zombie", "Costa Rican in PR"), 
+                        c("Misc Controls", "Urban-Rural Index", "Legal Professional"),
+                        c("Seniority", "1st Term", "12th Term")))
 
 ## ----fig.width=5, fig.height=9, warning=FALSE, message=FALSE-------------
 library(grid)
