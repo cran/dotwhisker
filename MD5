@@ -1,8 +1,8 @@
-e2b52052277986a4d7d675fca2b4124f *DESCRIPTION
+e145ad80a7e21e3b134df86fd7eae6ba *DESCRIPTION
 bbf2ee3c55df176eacaec7f7aa0683f7 *LICENSE
 3b17fe8580ca2f01afce3aeb03a139cb *NAMESPACE
-366968d7abf969385f4b8f0f764f1d5f *NEWS.md
-9ed5deb59836bc0a9444b97061d49640 *R/add_brackets.R
+5644a65da6f8a24fe202ee120a00591b *NEWS.md
+04d6ea4b208a0224d358fb1c2b8cfe60 *R/add_brackets.R
 daff5cc05dd473c436f723c80a7b91f5 *R/by_2sd.R
 0a5e35bb12a1751397756de530a89360 *R/dwplot.R
 e71e5238fd6b54f0de576e778202847d *R/relabel_predictors.R
@@ -12,10 +12,10 @@ e8378e46e09fae142c95ef2d27a153dc *R/relabel_y_axis.R
 4d501485586b1266fc60c8f129825e5e *build/vignette.rds
 d5ebbacc023fc78fbc8f456dab09f0df *inst/doc/dotwhisker-vignette.R
 d6794642266a073368daea7c01943df9 *inst/doc/dotwhisker-vignette.Rmd
-88227d58ce28685197d67de2ea96b32a *inst/doc/dotwhisker-vignette.html
+e039aae912a1036507b7f26e7f1bacb5 *inst/doc/dotwhisker-vignette.html
 034b196231479569eafe776b235a906d *inst/doc/kl2007_examples.R
 434cb3e206b76deecc4d812667793260 *inst/doc/kl2007_examples.Rmd
-bb04600777bbafda09fbd5647f2f03a8 *inst/doc/kl2007_examples.html
+365903811dc6fcc2c88b576ed4721d7d *inst/doc/kl2007_examples.html
 f7e468ebf9c14b0417af73f5c7c78a55 *man/add_brackets.Rd
 86ee892f71f8e2199a0416a7e9970164 *man/by_2sd.Rd
 95366e76e75783723bcc1138245b85d5 *man/dwplot.Rd
