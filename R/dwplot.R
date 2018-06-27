@@ -9,7 +9,9 @@
 #' @param model_name The name of a variable that distinguishes separate models within a tidy data frame.
 #' @param style Either \code{"dotwhisker"} or \code{"distribution"}. \code{"dotwhisker"}, the default, shows the regression coefficients' point estimates as dots with confidence interval whiskers.  \code{"distribution"} shows the normal distribution with mean equal to the point estimate and standard deviation equal to the standard error, underscored with a confidence interval whisker.
 #' @param by_2sd When x is model object or list of model objects, should the coefficients for predictors that are not binary be rescaled by twice the standard deviation of these variables in the dataset analyzed, per Gelman (2008)?  Defaults to \code{TRUE}.  Note that when x is a tidy data frame, one can use \code{\link[dotwhisker]{by_2sd}} to rescale similarly.
-#' @param dot_args When \code{style} is "dotwhisker", a list of arguments specifying the appearance of the dots representing mean estimates and whiskers representing the confidence intervals.  For supported arguments, see \code{\link[ggstance]{geom_pointrangeh}}.
+#' @param vline A \code{geom_vline()} object, typically with \code{xintercept = 0}, to be drawn behind the coefficients.
+#' @param dot_args When \code{style} is "dotwhisker", a list of arguments specifying the appearance of the dots representing mean estimates.  For supported arguments, see \code{\link[ggplot2]{geom_point}}.
+#' @param whisker_args When \code{style} is "dotwhisker", a list of arguments specifying the appearance of the whiskers representing the confidence intervals.  For supported arguments, see \code{\link[ggstance]{geom_linerangeh}}.
 #' @param dist_args When \code{style} is "distribution", a list of arguments specifying the appearance of normally distributed regression estimates.  For supported arguments, see \code{\link[ggplot2]{geom_polygon}}.
 #' @param line_args When \code{style} is "distribution", a list of arguments specifying the appearance of the line marking the confidence interval beneath the normal distribution.  For supported arguments, see \code{\link[ggstance]{geom_linerangeh}}.
 #' @param \dots Extra arguments to pass to \code{\link[broom]{tidy}}.
@@ -36,11 +38,12 @@
 #'
 #' @import ggplot2
 #' @importFrom broom tidy
-#' @importFrom dplyr "%>%" filter arrange left_join full_join bind_rows group_by if_else mutate distinct pull
-#' @importFrom stats qnorm reorder
+#' @importFrom dplyr "%>%" filter arrange left_join full_join bind_rows group_by if_else mutate distinct
+#' @importFrom stats qnorm reorder model.matrix
 #' @importFrom ggstance geom_pointrangeh position_dodgev GeomLinerangeh
 #' @importFrom purrr map_df map
 #' @importFrom stats dnorm model.frame
+#' @importFrom utils modifyList
 #'
 #' @examples
 #' library(broom)
@@ -48,9 +51,8 @@
 #' # Plot regression coefficients from a single model object
 #' data(mtcars)
 #' m1 <- lm(mpg ~ wt + cyl + disp, data = mtcars)
-#' dwplot(m1) +
-#'     xlab("Coefficient") +
-#'     geom_vline(xintercept = 0, colour = "grey50", linetype = 2)
+#' dwplot(m1, vline = geom_vline(xintercept = 0, colour = "grey50", linetype = 2)) +
+#'     xlab("Coefficient")
 #' # using 99% confidence interval
 #' dwplot(m1, conf.level = .99)
 #' # Plot regression coefficients from multiple models
@@ -86,7 +88,9 @@ dwplot <- function(x,
                    model_name = "model",
                    style = c("dotwhisker", "distribution"),
                    by_2sd = TRUE,
-                   dot_args = list(size = .3),
+                   vline = NULL,
+                   dot_args = list(size = 1.2),
+                   whisker_args = list(size = .5),
                    dist_args = list(alpha = .5),
                    line_args = list(alpha = .75, size = 1),
                    ...) {
@@ -139,7 +143,7 @@ dwplot <- function(x,
     df <- df %>%
         mutate(y_ind = n_vars - as.numeric(factor(term, levels = var_names)) + 1)
 
-    y_ind <- df %>% pull(y_ind)
+    y_ind <- df$y_ind
 
     # Make the plot
     if (style == "distribution") {
@@ -159,17 +163,20 @@ dwplot <- function(x,
             filter(!is.na(estimate))
 
         p <- ggplot(data = df) +
+            vline +
             geom_dwdist(df1 = df1, line_args = line_args, dist_args = dist_args) +
             scale_y_continuous(breaks = unique(df$y_ind), labels = var_names) +
             ylab("") + xlab("")
 
     } else { # style == "dotwhisker"
-        point_args0 <- list(na.rm = TRUE, position = ggstance::position_dodgev(height = dodge_size))
+        point_args0 <- list(na.rm = TRUE)
         point_args <- c(point_args0, dot_args)
+        segment_args0 <- list(na.rm = TRUE)
+        segment_args <- c(segment_args0, whisker_args)
 
-        p <- ggplot(df, aes(x = estimate, xmin = conf.low, xmax = conf.high,
-                            y = stats::reorder(term, y_ind), colour = model)) +
-            do.call(ggstance::geom_pointrangeh, point_args) +
+        p <- ggplot(data = df) +
+            vline +
+            geom_dw(df = df, point_args = point_args, segment_args = segment_args, dodge_size = dodge_size) +
             ylab("") + xlab("")
     }
 
@@ -184,7 +191,9 @@ dwplot <- function(x,
                    model_name = model_name,
                    style = style,
                    by_2sd = FALSE,
+                   vline = vline,
                    dot_args = dot_args,
+                   whisker_args = whisker_args,
                    dist_args = dist_args,
                    line_args = line_args,
                    list(...))
@@ -196,26 +205,37 @@ dw_tidy <- function(x, by_2sd, ...) {
     # Set variables that will appear in pipelines to NULL to make R CMD check happy
     estimate <- model <- std.error <- conf.high <- conf.low <- NULL
 
+    ## return model matrix *or* model frame
+    get_dat <- function(x) {
+        tryCatch(as.data.frame(model.matrix(x)),
+                 error=function(e) model.frame(x))
+    }
+    ## prepend "Model" to numeric-convertable model labels
+    mk_model <- function(x) {
+        if (all(!is.na(suppressWarnings(as.numeric(x))))) {
+            paste("Model",x)
+        } else x
+    }
+
     if (!is.data.frame(x)) {
-        if ("coefficients" %in% names(x)) { # single model
+        if (!inherits(x,"list")) {
+            df <- broom::tidy(x, conf.int = TRUE, ...)
             if (by_2sd) {
-                df <- broom::tidy(x, conf.int = TRUE, ...) %>%
-                    by_2sd(model.frame(x))
-            } else {
-                df <- broom::tidy(x, conf.int = TRUE, ...)
+                df <- df %>% by_2sd(get_dat(x))
             }
         } else {    # list of models
             if (by_2sd) {
-                df <- purrr::map_df(x, .id = "model", function(y) {
-                    broom::tidy(y, conf.int = TRUE, ...) %>%
-                        by_2sd(model.frame(y))
-                    }) %>%
-                    mutate(model = if_else(!is.na(suppressWarnings(as.numeric(model))),
-                                           paste("Model", model), model))
+                df <- purrr::map_dfr(x, .id = "model",
+                                     ## . has special semantics, can't use
+                                     ## it here ...
+                                     function(x) {
+                                 broom::tidy(x, conf.int = TRUE, ...) %>%
+                                     dotwhisker::by_2sd(dataset=get_dat(x))
+                                 }) %>%
+                    mutate(model = mk_model(model))
             } else {
-                df <- purrr::map_df(x, .id = "model", function(y) {
-                    broom::tidy(y, conf.int = TRUE, ...)
-                    }) %>%
+                df <- purrr::map_dfr(x, .id = "model",
+                    ~broom::tidy(., conf.int = TRUE, ...)) %>%
                     mutate(model = if_else(!is.na(suppressWarnings(as.numeric(model))),
                                            paste("Model", model), model))
             }
@@ -226,7 +246,7 @@ dw_tidy <- function(x, by_2sd, ...) {
             if ("std.error" %in% names(df)) {
                 df <- transform(df,
                                 conf.low = estimate - stats::qnorm(.975) * std.error,
-                                conf.high = estimate + stats::qnorm(.975) * df$std.error)
+                                conf.high = estimate + stats::qnorm(.975) * std.error)
             } else {
                 df <- transform(df, conf.low=NA, conf.high=NA)
             }
@@ -292,11 +312,49 @@ geom_dwdist <- function(data = NULL, df1, line_args, dist_args) {
                 mapping = aes(x = loc, y = dens, group = interaction(model, term), color = model, fill = model),
                 stat = "identity", position = "identity", geom = GeomPolygon,
                 params = dist_args)
-    l2 <- layer(data = data, mapping = aes(y = y_ind, xmin = conf.low, xmax = conf.high, color = model),
+    l2 <- layer(data = data,
+                mapping = aes(y = y_ind, xmin = conf.low, xmax = conf.high, color = model),
                 stat = "identity", position = "identity", geom = ggstance::GeomLinerangeh,
                 show.legend = FALSE,
                 params = line_args)
     return(list(l1, l2))
+}
+
+geom_dw <- function(df, point_args, segment_args, dodge_size) {
+    # Set variables to NULL to make R CMD check happy
+    loc <- dens <- model <- term <- y_ind <- conf.high <- conf.low <- estimate <- NULL
+
+    point_arguments <- tryCatch({added_point_aes <- point_args[names(point_args) == ""][[1]]
+    point_mapping <- modifyList(aes(y = stats::reorder(term, y_ind), x = estimate, group = interaction(model, term), color = model), added_point_aes)
+    point_arguments <- point_args[names(point_args) != ""]
+    list(point_mapping, point_arguments)
+    },
+    error = function(e) {
+        point_mapping <- aes(y = stats::reorder(term, y_ind), x = estimate, group = interaction(model, term), color = model)
+        return(list(point_mapping, point_args))
+    })
+
+    segment_arguments <- tryCatch({added_segment_aes <- segment_args[names(segment_args) == ""][[1]]
+    segment_mapping <- modifyList(aes(y = stats::reorder(term, y_ind), xmin = conf.low, xmax = conf.high, group = interaction(model, term), color = model), added_segment_aes)
+    segment_arguments <- segment_args[names(segment_args) != ""]
+    list(segment_mapping, segment_arguments)
+    },
+    error = function(e) {
+        segment_mapping <- aes(y = stats::reorder(term, y_ind), xmin = conf.low, xmax = conf.high, group = interaction(model, term), color = model)
+        return(list(segment_mapping, segment_args))
+    })
+
+
+    l1 <- layer(data = df,
+                mapping = point_arguments[[1]],
+                stat = "identity", position = ggstance::position_dodgev(height = dodge_size), geom = "point",
+                params = point_arguments[[2]])
+    l2 <- layer(data = df,
+                mapping = segment_arguments[[1]],
+                stat = "identity", position = ggstance::position_dodgev(height = dodge_size), geom = ggstance::GeomLinerangeh,
+                show.legend = FALSE,
+                params = segment_arguments[[2]])
+    return(list(l2, l1))
 }
 
 #' @export
