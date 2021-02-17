@@ -1,7 +1,16 @@
-## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
+## ----setup, include=FALSE-----------------------------------------------------
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  dpi = 300
+)
+
+library(broomExtra)
+library(margins)
+
+## ----basic, out.width="100%"--------------------------------------------------
 #Package preload
 library(dotwhisker)
-library(broom)
 library(dplyr)
 
 # run a regression compatible with tidy
@@ -10,19 +19,19 @@ m1 <- lm(mpg ~ wt + cyl + disp + gear, data = mtcars)
 # draw a dot-and-whisker plot
 dwplot(m1)
 
-## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
-dwplot(m1, conf.level = .99)  # using 99% CI
+## ----ci, out.width="100%"-----------------------------------------------------
+dwplot(m1, ci = .99)  # using 99% CI
 
-## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
+## ----multipleModels, out.width="100%"-----------------------------------------
 m2 <- update(m1, . ~ . + hp) # add another predictor
 m3 <- update(m2, . ~ . + am) # and another 
 
 dwplot(list(m1, m2, m3))
 
-## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
+## ----intercept, out.width="100%"----------------------------------------------
 dwplot(list(m1, m2, m3), show_intercept = TRUE)
 
-## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
+## ----ggplot, fig.width=4------------------------------------------------------
 dwplot(list(m1, m2, m3),
        vline = geom_vline(xintercept = 0, colour = "grey60", linetype = 2)) %>% # plot line at zero _behind_ coefs
     relabel_predictors(c(wt = "Weight",                       
@@ -40,13 +49,13 @@ dwplot(list(m1, m2, m3),
            legend.background = element_rect(colour="grey80"),
            legend.title = element_blank()) 
 
-## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
+## ----tidyData, out.width="100%"-----------------------------------------------
 # regression compatible with tidy
 m1_df <- tidy(m1) # create data.frame of regression results
 m1_df # a tidy data.frame available for dwplot
 dwplot(m1_df) #same as dwplot(m1)
 
-## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
+## ----tidy, out.width="100%"---------------------------------------------------
 m1_df <- tidy(m1) %>% filter(term != "(Intercept)") %>% mutate(model = "Model 1")
 m2_df <- tidy(m2) %>% filter(term != "(Intercept)") %>% mutate(model = "Model 2")
 
@@ -54,7 +63,7 @@ two_models <- rbind(m1_df, m2_df)
 
 dwplot(two_models)
 
-## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
+## ----regularExpression, out.width="100%"--------------------------------------
 # Transform cyl to factor variable in the data
 m_factor <- lm(mpg ~ wt + cyl + disp + gear, data = mtcars %>% mutate(cyl = factor(cyl)))
 
@@ -64,7 +73,7 @@ m_factor_df <- tidy(m_factor) %>%
 
 dwplot(m_factor_df)
 
-## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
+## ----relabel, fig.width=4-----------------------------------------------------
 # Run model on subsets of data, save results as tidy df, make a model variable, and relabel predictors
 by_trans <- mtcars %>% 
     group_by(am) %>%                                         # group data by trans
@@ -91,7 +100,7 @@ dwplot(by_trans,
                       breaks = c(0, 1),
                       labels = c("Automatic", "Manual"))
 
-## ----fig.width = 7, fig.height = 4, warning = FALSE, message = FALSE-----
+## ----custom, fig.width=4------------------------------------------------------
 dwplot(by_trans,
        vline = geom_vline(xintercept = 0, colour = "grey60", linetype = 2), # plot line at zero _behind_ coefs
        dot_args = list(aes(shape = model)),
@@ -111,7 +120,7 @@ dwplot(by_trans,
                          breaks = c(0, 1),
                          labels = c("Automatic", "Manual"))
 
-## ----fig.width = 7, message = FALSE, warning = FALSE---------------------
+## ----clm, out.width="100%"----------------------------------------------------
 # the ordinal regression model is not supported by tidy
 m4 <- ordinal::clm(factor(gear) ~ wt + cyl + disp, data = mtcars)
 m4_df <- coef(summary(m4)) %>% 
@@ -121,7 +130,7 @@ m4_df <- coef(summary(m4)) %>%
 m4_df
 dwplot(m4_df)
 
-## ----fig.width = 7, message = FALSE, warning = FALSE---------------------
+## ----by2sd, out.width="100%"--------------------------------------------------
 # Customize the input data frame
 m1_df_mod <- m1_df %>%                 # the original tidy data.frame
     by_2sd(mtcars) %>%                 # rescale the coefficients
@@ -130,17 +139,29 @@ m1_df_mod <- m1_df %>%                 # the original tidy data.frame
 m1_df_mod  # rescaled, with variables reordered alphabetically
 dwplot(m1_df_mod)
 
-## ----fig.width = 7, message = FALSE, warning = FALSE---------------------
+## ----margins, out.width="100%"------------------------------------------------
 # Create a data.frame of marginal effects
-m5 <- mfx::logitmfx(formula = am ~ wt + cyl + disp, data = mtcars) 
-m5_margin <- data.frame(m5$mfxest) %>% 
-  tibble::rownames_to_column("term") %>% 
-  rename(estimate = dF.dx, std.error = Std..Err.)
+m5 <- glm(am ~ wt + cyl + mpg, data = mtcars, family = binomial)
+m5_margin <- margins::margins(m5) %>%
+  summary() %>%
+  dplyr::rename(
+    term = factor,
+    estimate = AME,
+    std.error = SE,
+    conf.low = lower,
+    conf.high = upper,
+    statistic = z,
+    p.value = p
+  )
 m5_margin
 
 dwplot(m5_margin)
 
-## ----fig.width = 7, fig.height = 5, warning = FALSE, message = FALSE-----
+## ----marginsShort, out.width="100%"-------------------------------------------
+dwplot(m5, margins = TRUE)
+dwplot(m5, margins = TRUE, ci = .8)
+
+## ----brackets, fig.width=4.5--------------------------------------------------
 # Create list of brackets (label, topmost included predictor, bottommost included predictor)
 three_brackets <- list(c("Overall", "Weight", "Weight"), 
                        c("Engine", "Cylinders", "Horsepower"),
@@ -163,7 +184,7 @@ three_brackets <- list(c("Overall", "Weight", "Weight"),
           legend.title = element_blank())} %>% 
     add_brackets(three_brackets)
 
-## ----fig.width = 6, fig.height = 9, warning = FALSE, message = FALSE-----
+## ----distribution, fig.height=5, fig.width=5----------------------------------
 
 by_transmission_brackets <- list(c("Overall", "Weight", "Weight"), 
                        c("Engine", "Cylinders", "Horsepower"),
@@ -171,7 +192,7 @@ by_transmission_brackets <- list(c("Overall", "Weight", "Weight"),
         
 {mtcars %>%
     split(.$am) %>%
-    purrr::map(~ lm(mpg ~ wt + cyl + disp + hp + gear, data = .x)) %>%
+    purrr::map(~ lm(mpg ~ wt + cyl + gear + qsec, data = .x)) %>%
     dwplot(style = "distribution") %>%
     relabel_predictors(wt = "Weight",
                          cyl = "Cylinders",
@@ -197,7 +218,7 @@ by_transmission_brackets <- list(c("Overall", "Weight", "Weight"),
     theme(plot.title = element_text(face = "bold", hjust = 0.5))
 
 
-## ----fig.width = 7, fig.height = 5, warning = FALSE, message = FALSE-----
+## ----secretWeapon, fig.width=5------------------------------------------------
 data(diamonds)
 
 # Estimate models for many subsets of data, put results in a tidy data.frame
@@ -212,7 +233,7 @@ secret_weapon(by_clarity, var = "carat") +
     ggtitle("Estimated Coefficients for Diamond Size Across Clarity Grades") +
     theme(plot.title = element_text(face="bold"))
 
-## ----fig.width = 2.5, fig.height = 7.5, warning = FALSE, message = FALSE----
+## ----smallMultiple, fig.height=7----------------------------------------------
 # Generate a tidy data frame of regression results from six models
 m <- list()
 ordered_vars <- c("wt", "cyl", "disp", "hp", "gear", "am")
@@ -248,7 +269,7 @@ small_multiple(m123456_df) +
         legend.position = "none",
         axis.text.x = element_text(angle = 60, hjust = 1)) 
 
-## ----fig.width = 3.5, fig.height = 8, warning = FALSE, message = FALSE----
+## ----smallMultiple2, fig.width=4, fig.height=6--------------------------------
 # Generate a tidy data frame of regression results from five models on
 # the mtcars data subset by transmission type
 ordered_vars <- c("wt", "cyl", "disp", "hp", "gear")

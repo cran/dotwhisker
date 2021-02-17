@@ -1,3 +1,15 @@
+## Version 0.6.0
+
+### New features
+
+1. Adding changing the `dw_tidy` engine to `broomExtra::tidy_parapmeter`. Thanks for Indrajeet Patil's amazing [package](https://indrajeetpatil.github.io/broomExtra/).
+1. Adding the function to plot AME based on [`margins::margins`]( https://CRAN.R-project.org/package=margins).
+
+### Bug fixed
+
+1. Allowing the data.frame output varying based on confidence intervals.
+1. Setting the default value of `by_2sd` to FALSE.
+
 ## Version 0.5.0
 #### New features
 1. The `vline` argument is now available for `dwplot()`.  Passing a `geom_vline()` object to this argument, typically one with `xintercept = 0`, will [plot this line _behind_ the plotted coefficients](https://github.com/fsolt/dotwhisker/issues/84), which most will find aesthetically preferable.  The default for this argument is `NULL`, so if you prefer not to include such lines or just like them plotted last and foremost, there's no need to change your code.
@@ -25,7 +37,7 @@ dwplot(x = lm_object,
 ![](https://i.imgur.com/Hr3ZOzF.png)
 
 Created on 2018-06-27 by the [reprex
-package](http://reprex.tidyverse.org) (v0.2.0).
+package](https://reprex.tidyverse.org) (v0.2.0).
 
 
 ## Version 0.4.1
@@ -40,7 +52,7 @@ package](http://reprex.tidyverse.org) (v0.2.0).
 
 #### Syntax changes
 1. The `alpha` argument to `dwplot()` should no longer be used to change the width of confidence intervals; use `conf.int` (to be passed to `broom::tidy` via `...`) instead.
-2. When `dwplot()` is passed model objects rather than a tidy data frame, the regression coefficients are now rescaled by two standard deviations of their respective variables in the analysed data (per `by_2sd()`)  by default.  This may be changed by setting `by_2sd = FALSE`.
+2. When `dwplot()` is passed model objects rather than a tidy data frame, the regression coefficients are now rescaled by two standard deviations of their respective variables in the analyzed data (per `by_2sd()`)  by default.  This may be changed by setting `by_2sd = FALSE`.
 
 #### Bug fixes
 1. Fixed a bug in `add_brackets()` that [de-centered the brackets](https://twitter.com/stevenvmiller/status/954379043058659328) 
@@ -52,7 +64,7 @@ Thanks to [Steven V. Miller](https://github.com/svmiller) and [Ryan Burge](https
 
 ## Version 0.3.0
 1. Rewrote the plotting functions based on the `ggstance` functions. The new `dwplot` allows cooperating with more `ggplot` functions, such as `facet_*`. 
-1. Drew whiskers based on the CI estimates directly from the model output. See more details in [`tidy.lm`](https://github.com/tidyverse/broom/blob/master/R/lm_tidiers.R) and [`confint`](https://github.com/cran/MASS/blob/master/R/confint.R).
+1. Drew whiskers based on the CI estimates directly from the model output. See more details in [`tidy.lm`](https://github.com/tidymodels/broom/blob/master/R/stats-lm-tidiers.R)) and [`confint`](https://github.com/cran/MASS/blob/master/R/confint.R).
 1. Clarified the description of `by_2sd`.
 
 ## Version 0.2.6

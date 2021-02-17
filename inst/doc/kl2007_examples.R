@@ -1,7 +1,7 @@
-## ----include=FALSE-------------------------------------------------------
+## ----include=FALSE------------------------------------------------------------
 library(gridExtra) # for grid.arrange() in KL code
 
-## ----fig.width=7, fig.height=7, warning=FALSE, message=FALSE-------------
+## ----fig.width=7, fig.height=7, warning=FALSE, message=FALSE------------------
 #Create vectors for coefficients, standard errors and variable names 
     #we place coefficient as last element in each vector rather than 1st
     #since it is least important predictor, and thus we place it at the bottom of the graph
@@ -45,7 +45,7 @@ text(x.height, 9, expression(paste("Adjusted ", R^{2} == ".12", "")), adj = 0, c
 text(x.height, 8, "n = 500", adj = 0, cex = 1)#add text for sample size
 
 
-## ----fig.width=7, fig.height=7, warning=FALSE, message=FALSE-------------
+## ----fig.width=7, fig.height=7, warning=FALSE, message=FALSE------------------
 #install.packages("dotwhisker") # uncomment to install from CRAN
 library(dplyr)
 library(dotwhisker)
@@ -66,7 +66,7 @@ results_df %>% dwplot + theme_bw() + theme(legend.position="none") +
     annotate("text", x = 1.05, y = 8, size = 4, hjust = 0,
               label = "n = 500") 
 
-## ----fig.width=7, fig.height=8, warning=FALSE, message=FALSE-------------
+## ----fig.width=7, fig.height=8, warning=FALSE, message=FALSE------------------
 #Create Vectors for coefs and standard errors for each model, and variable names
     #note that we  exclude "margin squared" since it doesn't appear in either model
 
@@ -160,7 +160,7 @@ segments(left.side,1.8,left.side+.15,1.8)
 text(.4, 7, "Seniority", srt = 90, font = 3, cex  = 1.5)#Add text; "srt" rotates to 90 degrees, font = 3 == italics
 
 
-## ----fig.width=7, fig.height=8, warning=FALSE, message=FALSE-------------
+## ----fig.width=7, fig.height=8, warning=FALSE, message=FALSE------------------
 # Format data as tidy dataframe
 results_df <- data.frame(term = rep(var.names, times = 2),
                          estimate = c(coef.vec.1, coef.vec.2),
@@ -183,7 +183,7 @@ p %>% add_brackets(list(c("MP Type", "Zombie", "Costa Rican in PR"),
                         c("Misc Controls", "Urban-Rural Index", "Legal Professional"),
                         c("Seniority", "1st Term", "12th Term")))
 
-## ----fig.width=5, fig.height=9, warning=FALSE, message=FALSE-------------
+## ----fig.width=5, fig.height=9, warning=FALSE, message=FALSE------------------
 library(grid)
 
 ##point estimates, in a n.variables, n.variables x n.models
@@ -644,7 +644,7 @@ tmp <- editGrob(tmp,gPath("xaxis","labels"),rot=45,just="right",gp=gpar(lineheig
 grid.arrange(tmp) ## print the graph
 
 
-## ----fig.width = 4, fig.height = 9, warning=FALSE, message=FALSE---------
+## ----fig.width = 4, fig.height = 9, warning=FALSE, message=FALSE--------------
 # Format data as tidy dataframe
 model_names <- c("Full Sample\n",
                        "Excluding counties\nw/ partial registration\n",
@@ -669,7 +669,7 @@ small_multiple(results_df) +
           legend.position=c(.97, .99), legend.justification=c(1, 1), 
           legend.title = element_text(size=8),
           legend.background = element_rect(color="gray90"),
-          legend.margin = unit(-3, "pt"),
+          legend.spacing = unit(-3, "pt"),
           legend.key.size = unit(10, "pt")) +
     scale_colour_hue(name = "Law Change\nDummy") +
     ggtitle("Registration Effects on Turnout\nAnsolabehere and Konisky (2006)\nvia Kastellec and Leoni (2007)")
