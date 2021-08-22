@@ -1,8 +1,8 @@
 Package: dotwhisker
 Type: Package
 Title: Dot-and-Whisker Plots of Regression Results
-Version: 0.7.0
-Date: 2021-07-17
+Version: 0.7.3
+Date: 2021-08-21
 Authors@R: 
    c(person("Frederick", "Solt", role = c("aut"), email = "frederick-solt@uiowa.edu"),
     person("Yue", "Hu", role = c("aut", "cre"), email = "yuehu@tsinghua.edu.cn"),
@@ -24,7 +24,7 @@ License: MIT + file LICENSE
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1
 NeedsCompilation: no
-Packaged: 2021-07-17 07:12:34 UTC; sammo
+Packaged: 2021-08-21 22:42:27 UTC; sammo
 Author: Frederick Solt [aut],
   Yue Hu [aut, cre],
   Os Keyes [ctb],
@@ -34,4 +34,4 @@ Author: Frederick Solt [aut],
   Chris Wallace [ctb],
   Christopher Warshaw [ctb]
 Repository: CRAN
-Date/Publication: 2021-07-17 07:50:02 UTC
+Date/Publication: 2021-08-22 08:40:09 UTC
