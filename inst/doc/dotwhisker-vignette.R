@@ -55,7 +55,6 @@ dwplot(list(m1, m2, m3),
             wt = "Weight",
             gear = "Gears",
             hp = "Horsepower"
-            
         )
     ) +
     theme_bw(base_size = 4) + 
