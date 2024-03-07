@@ -10,7 +10,7 @@ library(parameters)
 library(margins)
 library(ggplot2)
 
-theme_set(theme_gray(base_size = 4))
+theme_set(theme_gray(base_size = 6))
 
 
 ## ----basic--------------------------------------------------------------------
@@ -46,7 +46,7 @@ dwplot(list(m1, m2, m3),
        ),
        vars_order = c("am", "cyl", "disp", "gear", "hp", "wt"),
        model_order = c("Model 2", "Model 1", "Model 3")
-       ) %>% # plot line at zero _behind_coefs
+       )  |>  # plot line at zero _behind_coefs
     relabel_predictors(
         c(
             am = "Manual",
@@ -430,4 +430,76 @@ small_multiple(by_trans2) +
         labels = c("Automatic", "Manual")
     ) +
     ggtitle("Predicting Gas Mileage\nby Transmission Type")
+
+## ----stats--------------------------------------------------------------------
+dwplot(m1, show_stats = TRUE, stats_size = 3)
+
+dwplot(list(m1, m2, m3), show_stats = TRUE, stats_size = 3)
+
+small_multiple(list(m1, m2, m3), show_stats = TRUE, stats_size = 3)
+
+## ----stats_compare------------------------------------------------------------
+dwplot(list(m1, m4, m5), show_stats = TRUE, stats_size = 3)
+
+dwplot(
+  list(m1, m4, m5),
+  show_stats = TRUE,
+  stats_compare = TRUE,
+  stats_size = 3
+)
+
+## ----stats_custom-------------------------------------------------------------
+stats_fakeCustom <-
+  dotwhisker:::dw_stats(m1, stats_digits = 2, stats_compare = FALSE)
+
+dwplot(
+  m1_df,
+  show_stats = TRUE,
+  stats_tb = stats_fakeCustom,
+  stats_size = 3
+)
+
+## ----combo--------------------------------------------------------------------
+library(gridExtra)
+library(patchwork)
+
+three_brackets <- list(
+    c("Overall", "Weight", "Weight"),
+    c("Engine", "Cylinders", "Horsepower"),
+    c("Transmission", "Gears", "Manual")
+)
+
+plot_brackets <- {
+    dwplot(m3, 
+           vline = geom_vline(
+               xintercept = 0,
+               colour = "grey60",
+               linetype = 2
+           )) %>% # plot line at zero _behind_ coefs
+        relabel_predictors(
+            c(
+                wt = "Weight",
+                # relabel predictors
+                cyl = "Cylinders",
+                disp = "Displacement",
+                hp = "Horsepower",
+                gear = "Gears",
+                am = "Manual"
+            )
+        ) + xlab("Coefficient Estimate") + ylab("") +
+        ggtitle("Predicting Gas Mileage") 
+} %>%
+    add_brackets(three_brackets, fontSize = 0.3)
+
+plot_brackets / tableGrob(
+  dotwhisker:::dw_stats(
+    m3,
+    stats_digits = 2,
+    stats_compare = FALSE
+  ),
+  rows = NULL,
+  theme = ttheme_default(base_size = 3)
+) +
+  plot_layout(heights = c(5, -1.5, 1)) # the negative value is used to adjust the space between the plot and the model fits
+
 

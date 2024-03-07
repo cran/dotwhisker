@@ -1,3 +1,18 @@
+## Version 0.8.1
+
+Continue to removed the reference to `broomExtra` per CRAN's requirement (email on 2024-02-19)
+
+## Version 0.8.0
+
+### Bug fixed
+
+1. Removed the reference to `broomExtra` per CRAN's requirement (email on 2024-01-23)
+
+### New features
+
+1. Adding the argument `show_stats` to `dwplot` and `small_multiple` to show model fits beneath the plot
+1. Adding a hidden function `dw_stats` to extract model fits from the model outputs.
+
 ## Version 0.7.4
 
 ### Bug fixed
@@ -34,7 +49,7 @@
 
 ### New features
 
-1. Adding changing the `dw_tidy` engine to `broomExtra::tidy_parapmeter`. Thanks for Indrajeet Patil's amazing [package](https://indrajeetpatil.github.io/broomExtra/).
+1. Adding changing the `dw_tidy` engine to `broomExtra::tidy_parapmeter`.
 1. Adding the function to plot AME based on [`margins::margins`]( https://CRAN.R-project.org/package=margins).
 
 ### Bug fixed
@@ -96,7 +111,7 @@ Thanks to [Steven V. Miller](https://github.com/svmiller) and [Ryan Burge](https
 
 ## Version 0.3.0
 1. Rewrote the plotting functions based on the `ggstance` functions. The new `dwplot` allows cooperating with more `ggplot` functions, such as `facet_*`. 
-1. Drew whiskers based on the CI estimates directly from the model output. See more details in [`tidy.lm`](https://github.com/tidymodels/broom/blob/master/R/stats-lm-tidiers.R)) and [`confint`](https://github.com/cran/MASS/blob/master/R/confint.R).
+1. Drew whiskers based on the CI estimates directly from the model output. See more details in [`tidy.lm`](https://github.com/tidymodels/broom/blob/master/R/stats-lm-tidiers.R)) and `confint`.
 1. Clarified the description of `by_2sd`.
 
 ## Version 0.2.6
