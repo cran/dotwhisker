@@ -1,17 +1,13 @@
 ## ----setup, include=FALSE-----------------------------------------------------
 knitr::opts_chunk$set(
   message = FALSE,
-  warning = FALSE,
-  dpi = 300,
-  fig.dim=c(2.2,2.5)
+  warning = FALSE
+  # dpi = 300,
+  # fig.dim = c(2.2, 2.5)
 )
 
 library(parameters)
-library(margins)
 library(ggplot2)
-
-theme_set(theme_gray(base_size = 6))
-
 
 ## ----basic--------------------------------------------------------------------
 #Package preload
@@ -197,28 +193,6 @@ m1_df_mod <-
 
 m1_df_mod  # rescaled, with variables reordered alphabetically
 dwplot(m1_df_mod)
-
-## ----margins------------------------------------------------------------------
-# Create a data.frame of marginal effects
-m5 <- glm(am ~ wt + cyl + mpg, data = mtcars, family = binomial)
-m5_margin <- margins::margins(m5) %>%
-    summary() %>%
-    dplyr::rename(
-        term = factor,
-        estimate = AME,
-        std.error = SE,
-        conf.low = lower,
-        conf.high = upper,
-        statistic = z,
-        p.value = p
-    )
-m5_margin
-
-dwplot(m5_margin)
-
-## ----marginsShort-------------------------------------------------------------
-dwplot(m5, margins = TRUE)
-dwplot(m5, margins = TRUE, ci = .8)
 
 ## ----brackets, fig.dim=c(5, 2.5)----------------------------------------------
 # Create list of brackets (label, topmost included predictor, bottommost included predictor)
@@ -439,10 +413,10 @@ dwplot(list(m1, m2, m3), show_stats = TRUE, stats_size = 3)
 small_multiple(list(m1, m2, m3), show_stats = TRUE, stats_size = 3)
 
 ## ----stats_compare------------------------------------------------------------
-dwplot(list(m1, m4, m5), show_stats = TRUE, stats_size = 3)
+dwplot(list(m1, m4), show_stats = TRUE, stats_size = 3)
 
 dwplot(
-  list(m1, m4, m5),
+  list(m1, m4),
   show_stats = TRUE,
   stats_compare = TRUE,
   stats_size = 3

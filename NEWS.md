@@ -1,3 +1,8 @@
+## Version 0.8.2
+
+- Submitted just for the upstream package (`prediction`) issue.
+- Removed `margins` for the author would not maintain or update it in the foreseeable future.
+
 ## Version 0.8.1
 
 Continue to removed the reference to `broomExtra` per CRAN's requirement (email on 2024-02-19)
