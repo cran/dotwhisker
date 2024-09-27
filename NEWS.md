@@ -1,3 +1,8 @@
+## Version 0.8.3
+
+- Add argument to turn on/off the toggle warnings and messages when showing the model fit table.
+- Fix [error from CRAN](https://www.r-project.org/nosvn/R.check/r-devel-linux-x86_64-debian-gcc/dotwhisker-00check.html) 
+
 ## Version 0.8.2
 
 - Submitted just for the upstream package (`prediction`) issue.

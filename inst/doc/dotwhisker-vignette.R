@@ -77,9 +77,9 @@ dwplot(m1_df) #same as dwplot(m1)
 
 ## ----tidy---------------------------------------------------------------------
 m1_df <-
-    broom::tidy(m1) %>% filter(term != "(Intercept)") %>% mutate(model = "Model 1")
+    broom::tidy(m1) |> filter(term != "(Intercept)") |> mutate(model = "Model 1")
 m2_df <-
-    broom::tidy(m2) %>% filter(term != "(Intercept)") %>% mutate(model = "Model 2")
+    broom::tidy(m2) |> filter(term != "(Intercept)") |> mutate(model = "Model 2")
 
 two_models <- rbind(m1_df, m2_df)
 
@@ -88,20 +88,20 @@ dwplot(two_models)
 ## ----regularExpression--------------------------------------------------------
 # Transform cyl to factor variable in the data
 m_factor <-
-    lm(mpg ~ wt + cyl + disp + gear, data = mtcars %>% mutate(cyl = factor(cyl)))
+    lm(mpg ~ wt + cyl + disp + gear, data = mtcars |> mutate(cyl = factor(cyl)))
 
 # Remove all model estimates that start with cyl*
-m_factor_df <- broom::tidy(m_factor) %>%
+m_factor_df <- broom::tidy(m_factor) |>
     filter(!grepl('cyl*', term))
 
 dwplot(m_factor_df)
 
 ## ----relabel------------------------------------------------------------------
 # Run model on subsets of data, save results as tidy df, make a model variable, and relabel predictors
-by_trans <- mtcars %>%
-    group_by(am) %>%                                         # group data by trans
-    do(broom::tidy(lm(mpg ~ wt + cyl + disp + gear, data = .))) %>% # run model on each grp
-    rename(model = am) %>%                                     # make model variable
+by_trans <- mtcars |>
+    group_by(am) |>                                         # group data by trans
+    do(broom::tidy(lm(mpg ~ wt + cyl + disp + gear, data = .))) |> # run model on each grp
+    rename(model = am) |>                                     # make model variable
     relabel_predictors(c(
         wt = "Weight",
         # relabel predictors
@@ -177,9 +177,9 @@ dwplot(
 ## ----clm----------------------------------------------------------------------
 # the ordinal regression model is not supported by tidy
 m4 <- ordinal::clm(factor(gear) ~ wt + cyl + disp, data = mtcars)
-m4_df <- coef(summary(m4)) %>%
-    data.frame() %>%
-    tibble::rownames_to_column("term") %>%
+m4_df <- coef(summary(m4)) |>
+    data.frame() |>
+    tibble::rownames_to_column("term") |>
     rename(estimate = Estimate, std.error = Std..Error)
 m4_df
 dwplot(m4_df)
@@ -187,8 +187,8 @@ dwplot(m4_df)
 ## ----by2sd--------------------------------------------------------------------
 # Customize the input data frame
 m1_df_mod <-
-    m1_df %>%                 # the original tidy data.frame
-    by_2sd(mtcars) %>%                 # rescale the coefficients
+    m1_df |>                 # the original tidy data.frame
+    by_2sd(mtcars) |>                 # rescale the coefficients
     arrange(term)                      # alphabetize the variables
 
 m1_df_mod  # rescaled, with variables reordered alphabetically
@@ -208,7 +208,7 @@ three_brackets <- list(
                xintercept = 0,
                colour = "grey60",
                linetype = 2
-           )) %>% # plot line at zero _behind_ coefs
+           )) |> # plot line at zero _behind_ coefs
         relabel_predictors(
             c(
                 wt = "Weight",
@@ -228,7 +228,7 @@ three_brackets <- list(
             legend.background = element_rect(colour = "grey80"),
             legend.title = element_blank()
         )
-} %>%
+} |>
     add_brackets(three_brackets, fontSize = 0.3)
 
 ## ----distribution, fig.dim=c(5, 2.5)------------------------------------------
@@ -240,9 +240,9 @@ by_transmission_brackets <- list(
 
 {
     mtcars %>%
-        split(.$am) %>%
-        purrr::map( ~ lm(mpg ~ wt + cyl + gear + qsec, data = .x)) %>%
-        dwplot(style = "distribution") %>%
+        split(.$am) |>
+        purrr::map( ~ lm(mpg ~ wt + cyl + gear + qsec, data = .x)) |>
+        dwplot(style = "distribution") |>
         relabel_predictors(
             wt = "Weight",
             cyl = "Cylinders",
@@ -277,7 +277,7 @@ by_transmission_brackets <- list(
         ) +
         ggtitle("Predicting Gas Mileage by Transmission Type") +
     theme(plot.title = element_text(face = "bold", hjust = 0.5))
-} %>%
+} |>
     add_brackets(by_transmission_brackets, fontSize = 0.3)
     
 
@@ -285,10 +285,11 @@ by_transmission_brackets <- list(
 data(diamonds)
 
 # Estimate models for many subsets of data, put results in a tidy data.frame
-by_clarity <- diamonds %>%
-    group_by(clarity) %>%
-    do(broom::tidy(lm(price ~ carat + cut + color, data = .), conf.int = .99)) %>%
-    ungroup %>% rename(model = clarity)
+by_clarity <- diamonds |>
+    group_by(clarity) |>
+    do(broom::tidy(lm(price ~ carat + cut + color, data = .), conf.int = .99)) |>
+    ungroup() |> 
+  rename(model = clarity)
 
 # Deploy the secret weapon
 secret_weapon(by_clarity, var = "carat") +
@@ -301,21 +302,21 @@ secret_weapon(by_clarity, var = "carat") +
 m <- list()
 ordered_vars <- c("wt", "cyl", "disp", "hp", "gear", "am")
 m[[1]] <- lm(mpg ~ wt, data = mtcars)
-m123456_df <- m[[1]] %>%
-    broom::tidy() %>%
-    by_2sd(mtcars) %>%
+m123456_df <- m[[1]] |>
+    broom::tidy() |>
+    by_2sd(mtcars) |>
     mutate(model = "Model 1")
 for (i in 2:6) {
     m[[i]] <- update(m[[i - 1]], paste(". ~ . +", ordered_vars[i]))
     m123456_df <- rbind(m123456_df,
-                        m[[i]] %>%
-                            broom::tidy() %>%
-                            by_2sd(mtcars) %>%
+                        m[[i]] |>
+                            broom::tidy() |>
+                            by_2sd(mtcars) |>
                             mutate(model = paste("Model", i)))
 }
 
 # Relabel predictors (they will appear as facet labels)
-m123456_df <- m123456_df %>%
+m123456_df <- m123456_df |>
     relabel_predictors(
         c(
             "(Intercept)" = "Intercept",
@@ -347,29 +348,29 @@ small_multiple(m123456_df) +
 ordered_vars <- c("wt", "cyl", "disp", "hp", "gear")
 mod <- "mpg ~ wt"
 
-by_trans2 <- mtcars %>%
-    group_by(am) %>%                        # group data by transmission
-    do(broom::tidy(lm(mod, data = .))) %>%         # run model on each group
-    rename(submodel = am) %>%               # make submodel variable
-    mutate(model = "Model 1") %>%           # make model variable
+by_trans2 <- mtcars |>
+    group_by(am) |>                        # group data by transmission
+    do(broom::tidy(lm(mod, data = .))) |>         # run model on each group
+    rename(submodel = am) |>               # make submodel variable
+    mutate(model = "Model 1") |>           # make model variable
     ungroup()
 
 for (i in 2:5) {
     mod <- paste(mod, "+", ordered_vars[i])
     by_trans2 <- rbind(
         by_trans2,
-        mtcars %>%
-            group_by(am) %>%
-            do(broom::tidy(lm(mod, data = .))) %>%
-            rename(submodel = am) %>%
-            mutate(model = paste("Model", i)) %>%
+        mtcars |>
+            group_by(am) |>
+            do(broom::tidy(lm(mod, data = .))) |>
+            rename(submodel = am) |>
+            mutate(model = paste("Model", i)) |>
             ungroup()
     )
 }
 
 # Relabel predictors (they will appear as facet labels)
-by_trans2 <- by_trans2 %>%
-    select(-submodel, everything(), submodel) %>%
+by_trans2 <- by_trans2 |>
+    select(-submodel, everything(), submodel) |>
     relabel_predictors(
         c(
             "(Intercept)" = "Intercept",
@@ -405,26 +406,16 @@ small_multiple(by_trans2) +
     ) +
     ggtitle("Predicting Gas Mileage\nby Transmission Type")
 
-## ----stats--------------------------------------------------------------------
+## ----stats, fig.height=5------------------------------------------------------
 dwplot(m1, show_stats = TRUE, stats_size = 3)
 
 dwplot(list(m1, m2, m3), show_stats = TRUE, stats_size = 3)
 
 small_multiple(list(m1, m2, m3), show_stats = TRUE, stats_size = 3)
 
-## ----stats_compare------------------------------------------------------------
-dwplot(list(m1, m4), show_stats = TRUE, stats_size = 3)
-
-dwplot(
-  list(m1, m4),
-  show_stats = TRUE,
-  stats_compare = TRUE,
-  stats_size = 3
-)
-
 ## ----stats_custom-------------------------------------------------------------
 stats_fakeCustom <-
-  dotwhisker:::dw_stats(m1, stats_digits = 2, stats_compare = FALSE)
+  dotwhisker:::dw_stats(m1, stats_digits = 2)
 
 dwplot(
   m1_df,
@@ -433,7 +424,7 @@ dwplot(
   stats_size = 3
 )
 
-## ----combo--------------------------------------------------------------------
+## ----combo, fig.height=6, fig.width=4-----------------------------------------
 library(gridExtra)
 library(patchwork)
 
@@ -449,7 +440,7 @@ plot_brackets <- {
                xintercept = 0,
                colour = "grey60",
                linetype = 2
-           )) %>% # plot line at zero _behind_ coefs
+           )) |> # plot line at zero _behind_ coefs
         relabel_predictors(
             c(
                 wt = "Weight",
@@ -462,7 +453,7 @@ plot_brackets <- {
             )
         ) + xlab("Coefficient Estimate") + ylab("") +
         ggtitle("Predicting Gas Mileage") 
-} %>%
+} |>
     add_brackets(three_brackets, fontSize = 0.3)
 
 plot_brackets / tableGrob(
@@ -474,6 +465,6 @@ plot_brackets / tableGrob(
   rows = NULL,
   theme = ttheme_default(base_size = 3)
 ) +
-  plot_layout(heights = c(5, -1.5, 1)) # the negative value is used to adjust the space between the plot and the model fits
+  plot_layout(heights = c(5, -0.5, 1)) # the negative value is used to adjust the space between the plot and the model fits
 
 

@@ -11,6 +11,7 @@
 #' @param stats_tb Customized table of model fitness. The table should be in a \code{data.frame}.
 #' @param stats_digits A numeric value specifying the digits to display in the fitness table. This parameter is relevant only when \code{show_stats = TRUE}. Default is 3, providing a balance between precision and readability.
 #' @param stats_compare A logical constant to enable comparison of statistics in the fitness table. Applicable only when \code{show_stats = TRUE}. The default value is \code{FALSE}. That is, it presents all the statistics across different modeling methods, yet potentially expanding the table's breadth. When set to \code{TRUE}, only the shared, comparable statistics are remained.
+#' @param stats_verbose A logical constant to turn on/off the toggle warnings and messages of model fits. The default is \code{FALSE}.
 #' @param stats_size A numeric value determining the font size in the fitness table, effective only if \code{show_stats = TRUE}. The standard setting is 10.
 #' @param stats_padding Defining the internal margins of the fitness table. Relevant when \code{show_stats = TRUE}. Set by default to \code{unit(c(4, 4), "mm")}, allowing for a balanced layout. Further customization options refer to \code{\link[gridExtra]{tableGrob}}.
 #' @param stats_layout Adjusting the spacing between the dotwhisker plot and the fitness table. Effective when \code{show_stats = TRUE}. The initial configuration is \code{c(2, -1, 1)}, ensuring a coherent visual flow. Additional layout settings refer to \code{\link[patchwork]{plot_layout}}.
@@ -39,62 +40,14 @@
 #' @return The function returns a \code{ggplot} object.
 #'
 #' @examples
-#' library(broom)
-#' library(dplyr)
 #'
-#' # Generate a tidy data frame of regression results from six models
+#' m1 <- lm(mpg ~ wt + cyl + disp + gear, data = mtcars)
+#' m2 <- update(m1, . ~ . + hp)
 #'
-#' m <- list()
-#' ordered_vars <- c("wt", "cyl", "disp", "hp", "gear", "am")
-#' m[[1]] <- lm(mpg ~ wt, data = mtcars)
-#' m123456_df <- m[[1]] %>% tidy %>% by_2sd(mtcars) %>%
-#'   mutate(model = "Model 1")
-#'
-#' for (i in 2:6) {
-#'  m[[i]] <- update(m[[i-1]], paste(". ~ . +", ordered_vars[i]))
-#'  m123456_df <- rbind(m123456_df, m[[i]] %>% tidy %>% by_2sd(mtcars) %>%
-#'    mutate(model = paste("Model", i)))
-#' }
 #'
 #' # Generate a 'small multiple' plot
-#' small_multiple(m123456_df)
-#'
-#'
-#' ## Using submodels to compare results across different samples
-#' # Generate a tidy data frame of regression results from five models on
-#' # the mtcars data subset by transmission type (am)
-#' ordered_vars <- c("wt", "cyl", "disp", "hp", "gear")
-#' mod <- "mpg ~ wt"
-#' by_trans <- mtcars %>% group_by(am) %>%  # group data by transmission
-#'   do(tidy(lm(mod, data = .))) %>%        # run model on each group
-#'   rename(submodel = am) %>%              # make submodel variable
-#'   mutate(model = "Model 1") %>%          # make model variable
-#'  ungroup()
-#'
-#' for (i in 2:5) {
-#'    mod <- paste(mod, "+", ordered_vars[i])
-#'    by_trans <- rbind(by_trans, mtcars %>% group_by(am) %>%
-#'                          do(tidy(lm(mod, data = .))) %>%
-#'                          rename(submodel = am) %>%
-#'                          mutate(model = paste("Model", i)) %>%
-#'                          ungroup())
-#' }
-#'
-#' small_multiple(by_trans) +
-#' theme_bw() + ylab("Coefficient Estimate") +
-#'     geom_hline(yintercept = 0, colour = "grey60", linetype = 2) +
-#'     theme(axis.text.x  = element_text(angle = 45, hjust = 1),
-#'           legend.position=c(0, 0), legend.justification=c(0, 0),
-#'           legend.title = element_text(size=9),
-#'           legend.background = element_rect(color="gray90"),
-#'           legend.spacing = unit(-3, "pt"),
-#'           legend.key.size = unit(10, "pt")) +
-#'     scale_colour_hue(name = "Transmission",
-#'     breaks = c(0, 1),
-#'     labels = c("Automatic", "Manual"))
-#'
-#' @importFrom dplyr "%>%" filter
-#' @importFrom stringr str_replace
+#' small_multiple(list(m1, m2))
+
 #' @importFrom utils globalVariables
 #'
 #' @export
@@ -108,6 +61,7 @@ small_multiple <- function(x,
                            stats_tb = NULL,
                            stats_digits = 3,
                            stats_compare = FALSE,
+                           stats_verbose = FALSE,
                            stats_size = 10,
                            stats_padding = unit(c(4, 4), "mm"),
                            stats_layout = c(2, -1, 1),
@@ -153,7 +107,8 @@ small_multiple <- function(x,
     n_models <- length(mod_names)
 
     # Add rows of NAs for variables not included in a particular model
-    df <- add_NAs(df, n_models, mod_names)
+    df <- add_NAs(df, n_models, mod_names) %>%
+        filter(!is.na(term))
     if (n_sub > 1) {
         df$model <- stringr::str_replace(df$model, as.character(df$submodel), "")
         mod_names <- unique(df$model)
@@ -231,7 +186,7 @@ small_multiple <- function(x,
         df_stats <- stats_tb
 
         if(is.null(df_stats)){ # No customized df_stats input
-            df_stats <- dw_stats(x, stats_digits = stats_digits, stats_compare = stats_compare)
+            df_stats <- dw_stats(x, stats_digits = stats_digits, stats_compare = stats_compare, stats_verbose = stats_verbose)
         } else {
             if(!is.data.frame(df_stats)) stop("The customized fitness table has to be a data.frame.")
         }
