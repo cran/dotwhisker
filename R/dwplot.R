@@ -15,7 +15,7 @@
 #' @param stats_size A numeric value determining the font size in the fitness table, effective only if \code{show_stats = TRUE}. The standard setting is 10.
 #' @param stats_padding Defining the internal margins of the fitness table. Relevant when \code{show_stats = TRUE}. Set by default to \code{unit(c(4, 4), "mm")}, allowing for a balanced layout. Further customization options refer to \code{\link[gridExtra]{tableGrob}}.
 #' @param stats_layout Adjusting the spacing between the dotwhisker plot and the fitness table. Effective when \code{show_stats = TRUE}. The initial configuration is \code{c(2, -1, 1)}, ensuring a coherent visual flow. Additional layout settings refer to \code{\link[patchwork]{plot_layout}}.
-#' @param margins [Suspended] A logical value indicating whether presenting the average marginal effects of the estimates. See the Details for more information.
+#' @param margins A logical value indicating whether presenting the average marginal effects of the estimates. See the Details for more information.
 #' @param model_name The name of a variable that distinguishes separate models within a tidy data frame.
 #' @param model_order A character vector defining the order of the models when multiple models are involved.
 #' @param style Either \code{"dotwhisker"} or \code{"distribution"}. \code{"dotwhisker"}, the default, shows the regression coefficients' point estimates as dots with confidence interval whiskers.  \code{"distribution"} shows the normal distribution with mean equal to the point estimate and standard deviation equal to the standard error, underscored with a confidence interval whisker.
@@ -40,7 +40,7 @@
 #' And because the output is a \code{ggplot} object, it can easily be further customized with any additional arguments and layers supported by \code{ggplot2}.
 #' Together, these two features make \code{dwplot} extremely flexible.
 #'
-#' \code{dwplot} provides an option to present the average marginal effect directly. Users can alter the confidence intervals of the margins through the \code{ci} argument. ^[The function is suspended due to the dependency issue. We'll work on getting it back in the next update.] The `margins` argument also works for \code{small_multiple} and \code{secret_weapon}.
+#' \code{dwplot} provides an option to present the average marginal effect directly. Users can alter the confidence intervals of the margins through the \code{ci} argument. The `margins` argument also works for \code{small_multiple} and \code{secret_weapon}. Note that for models with categorical outcome variables (such as ordered logit or multinomial regression), each category (level) has its own average marignal effects. To maintain visualization consistency with models with continuous or binary outcomes, \code{dwplot} only displays marginal effects for the first category.
 #'
 #' To minimize the need for lengthy, distracting regression tables (often relegated to an appendix for dot-whisker plot users), \code{dwplot} incorporates optimal model fit statistics directly beneath the dot-whisker plots. These statistics are derived using the excellent \code{\link[performance]{performance}} functions and integrated at the plot's base via \code{\link[patchwork]{patchwork}} and \code{\link[gridExtra]{tableGrob}} functions. For added flexibility, \code{dwplot} includes the \code{stats_tb} feature, allowing users to input customized statistics. Furthermore, a suite of \code{stats_*} functions is available for fine-tuning the presentation of these statistics, enhancing user control over the visual output.
 #'
@@ -54,11 +54,13 @@
 #' @import ggplot2
 #' @import patchwork
 #' @import performance
+#' @import marginaleffects
+#' 
 #' @importFrom parameters parameters standardize_names
 #' @importFrom dplyr "%>%" n filter arrange left_join full_join bind_rows group_by if_else mutate distinct relocate ends_with across where
 #' @importFrom stats qnorm reorder model.matrix dnorm model.frame nobs
 #' @importFrom ggstance geom_pointrangeh position_dodgev GeomLinerangeh
-#' @importFrom purrr map_dfr map list_c
+#' @importFrom purrr map list_c list_rbind
 #' @importFrom utils modifyList globalVariables
 #' @importFrom gridExtra tableGrob ttheme_default
 #'
@@ -98,29 +100,29 @@
 #' @export
 
 dwplot <- function(x,
-                   ci = .95,
-                   dodge_size = .4,
-                   vars_order = NULL,
-                   show_intercept = FALSE,
-                   show_stats = FALSE,
-                   stats_tb = NULL,
-                   stats_digits = 3,
-                   stats_compare = FALSE,
-                   stats_verbose = FALSE,
-                   stats_size = 10,
-                   stats_padding = unit(c(4, 4), "mm"),
-                   stats_layout = c(2, -1, 1),
-                   margins = FALSE,
-                   model_name = "model",
-                   model_order = NULL,
-                   style = c("dotwhisker", "distribution"),
-                   by_2sd = FALSE,
-                   vline = NULL,
-                   dot_args = list(size = 1.2),
-                   whisker_args = list(size = .5),
-                   dist_args = list(alpha = .5),
-                   line_args = list(alpha = .75, size = 1),
-                   ...) {
+                ci = .95,
+                dodge_size = .4,
+                vars_order = NULL,
+                show_intercept = FALSE,
+                show_stats = FALSE,
+                stats_tb = NULL,
+                stats_digits = 3,
+                stats_compare = FALSE,
+                stats_verbose = FALSE,
+                stats_size = 10,
+                stats_padding = unit(c(4, 4), "mm"),
+                stats_layout = c(2, -1, 1),
+                margins = FALSE,
+                model_name = "model",
+                model_order = NULL,
+                style = c("dotwhisker", "distribution"),
+                by_2sd = FALSE,
+                vline = NULL,
+                dot_args = list(size = 1.2),
+                whisker_args = list(size = .5),
+                dist_args = list(alpha = .5),
+                line_args = list(alpha = .75, size = 1),
+                ...) {
     # argument checks
     if (length(style) > 1)
         style <- style[[1]]
@@ -205,7 +207,7 @@ dwplot <- function(x,
                         dist_args = dist_args) +
             scale_y_continuous(breaks = unique(df$y_ind), labels = var_names) +
             guides(color = guide_legend(reverse = TRUE),
-                   fill = guide_legend(reverse = TRUE)) +
+                fill = guide_legend(reverse = TRUE)) +
             ylab("") + xlab("")
 
     } else {
@@ -260,7 +262,7 @@ dwplot <- function(x,
         }
 
         p <- p / tableGrob(df_stats, rows = NULL,
-                      theme = ttheme_default(base_size = stats_size)) +
+                    theme = ttheme_default(base_size = stats_size)) +
         plot_layout(heights = stats_layout) # remove the space between the plot and table
     }
 
@@ -288,16 +290,8 @@ dw_tidy <- function(x, ci, by_2sd, margins,...) {
     if (!is.data.frame(x)) {
         if (!inherits(x, "list")) {
             if(margins){
-                stop("The function is temporarily suspended because of the dependency issue. It will come back in the next version.")
-                # df <- margins::margins(x) %>%
-                #     summary(level = ci) %>%
-                #     rename(term = factor,
-                #            estimate = AME,
-                #            std.error = SE,
-                #            conf.low = lower,
-                #            conf.high = upper,
-                #            statistic = z,
-                #            p.value = p)
+                df <- avg_slopes(x, conf_level = ci)
+                if(!is.null(df$group)) df <- df[!duplicated(df$term), ] # used the marginal effects for the first category of y
             }else{
                 df <- standardize_names(parameters(x, ci, conf.int = TRUE, ...), style = "broom")
             }
@@ -308,53 +302,28 @@ dw_tidy <- function(x, ci, by_2sd, margins,...) {
         } else {
             # list of models
             if (by_2sd) {
-                df <- purrr::map_dfr(x, .id = "model",
-                                     ## . has special semantics, can't use
-                                     ## it here ...
-                                     function(x) {
-                                         if(margins){
-                                             stop("The function is temporarily suspended because of the dependency issue. It will come back in the next version.")
-                                             # df <- margins::margins(x) %>%
-                                             #     summary(level = ci) %>%
-                                             #     rename(term = factor,
-                                             #            estimate = AME,
-                                             #            std.error = SE,
-                                             #            conf.low = lower,
-                                             #            conf.high = upper,
-                                             #            statistic = z,
-                                             #            p.value = p)
-                                         }else{
-                                             df <- standardize_names(parameters(x, ci, conf.int = TRUE, ...), style = "broom")
-                                         }
-                                         dotwhisker::by_2sd(df, dataset = get_dat(x))
-                                     }) %>%
-                    mutate(model = mk_model(model))
+                if(is.null(names(x))) names(x) <- paste0("Model ", seq(x))
+                df <- purrr::map(x, \(x){
+                    if(margins){
+                                            df <- avg_slopes(x, conf_level = ci)
+                                            if(!is.null(df$group)) df <- df[!duplicated(df$term), ] # used the marginal effects for the first category of y
+                    }else{
+                                            df <- standardize_names(parameters(x, ci, conf.int = TRUE, ...), style = "broom")
+                                        }
+                                        dotwhisker::by_2sd(df, dataset = get_dat(x))
+                }) |> 
+                    list_rbind(names_to = "model")
             } else {
-                df <- purrr::map_dfr(x, .id = "model",
-                                     function(x) {
-                                         if(margins){
-
-                                             stop("The function is temporarily suspended because of the dependency issue. It will come back in the next version.")
-                                         #     df <- margins::margins(x) %>%
-                                         #         summary(level = ci) %>%
-                                         #         rename(term = factor,
-                                         #                estimate = AME,
-                                         #                std.error = SE,
-                                         #                conf.low = lower,
-                                         #                conf.high = upper,
-                                         #                statistic = z,
-                                         #                p.value = p)
-                                         }else{
-                                             df <- standardize_names(parameters(x, ci, conf.int = TRUE, ...), style = "broom")
-                                         }
-                                     }) %>%
-                    mutate(model = if_else(
-                        !is.na(suppressWarnings(as.numeric(
-                            model
-                        ))),
-                        paste("Model", model),
-                        model
-                    ))
+                if(is.null(names(x))) names(x) <- paste0("Model ", seq(x))
+                df <- purrr::map(x, \(x){
+                    if(margins){
+                                result <- avg_slopes(x, conf_level = ci)
+                                if(!is.null(df$group)) result <- result[!duplicated(result$term), ] # used the marginal effects for the first category of y
+                    }else{
+                                df <- standardize_names(parameters(x, ci, conf.int = TRUE, ...), style = "broom")
+                            }
+                }) |> 
+                    list_rbind(names_to = "model")
             }
         }
     } else {
@@ -365,10 +334,8 @@ dw_tidy <- function(x, ci, by_2sd, margins,...) {
             if ("std.error" %in% names(df)) {
                 df <- transform(
                     df,
-                    conf.low = estimate - stats::qnorm(1 - (1 - ci) /
-                                                           2) * std.error,
-                    conf.high = estimate + stats::qnorm(1 - (1 - ci) /
-                                                            2) * std.error
+                    conf.low = estimate - stats::qnorm(1 - (1 - ci) / 2) * std.error,
+                    conf.high = estimate + stats::qnorm(1 - (1 - ci) / 2) * std.error
                 )
             } else {
                 df <- transform(df,
@@ -381,9 +348,9 @@ dw_tidy <- function(x, ci, by_2sd, margins,...) {
 }
 
 dw_stats <- function(x,
-                     stats_digits,
-                     stats_compare = FALSE,
-                     stats_verbose = FALSE) {
+                    stats_digits,
+                    stats_compare = FALSE,
+                    stats_verbose = FALSE) {
     N <- Name <- Model <- NULL
 
     if (!inherits(x, "list")) {
@@ -405,16 +372,16 @@ dw_stats <- function(x,
     }
 
     df_stats <- mutate(df_stats,
-                       across(where(is.numeric),
-                              \(stats) round(stats, digits = stats_digits)))
+                    across(where(is.numeric),
+                            \(stats) round(stats, digits = stats_digits)))
 
     return(df_stats)
 }
 
 add_NAs <-function(df = df,
-             n_models = n_models,
-             mod_names = mod_names,
-             model_name = "model") {
+            n_models = n_models,
+            mod_names = mod_names,
+            model_name = "model") {
         # Set variables that will appear in pipelines to NULL to make R CMD check happy
         term <- model <- NULL
 
@@ -427,7 +394,8 @@ add_NAs <-function(df = df,
         for (i in seq(n_models)) {
             m <-
                 df %>% filter(model == factor(mod_names[[i]], levels = mod_names))
-            not_in <- setdiff(unique(df$term), m$term)
+            not_in <- setdiff(unique(df$term), m$term) |> as.character() # if keeping the factor class, sometimes produce NA weirdly 
+
             for (j in seq(not_in)) {
                 t <- data.frame(
                     term = factor(not_in[j], levels = levels(df$term)),
@@ -442,6 +410,7 @@ add_NAs <-function(df = df,
                     m <- full_join(m, t, by = c("term", "model"))
                 }
             }
+
             if (i == 1) {
                 dft <- m %>% arrange(term)
             } else {

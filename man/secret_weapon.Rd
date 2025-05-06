@@ -13,7 +13,7 @@ secret_weapon(x, var = NULL, ci = 0.95, margins = FALSE, by_2sd = FALSE, ...)
 
 \item{ci}{A number indicating the level of confidence intervals; the default is .95.}
 
-\item{margins}{[Suspended] A logical value indicating whether presenting the average marginal effects of the estimates. See the Details for more information.}
+\item{margins}{A logical value indicating whether presenting the average marginal effects of the estimates. See the Details of \code{dwplot} for more information.}
 
 \item{by_2sd}{When x is a list of model objects, should the coefficients for predictors that are not binary be rescaled by twice the standard deviation of these variables in the dataset analyzed, per Gelman (2008)?  Defaults to \code{TRUE}.  Note that when x is a tidy data frame, one can use \code{\link[dotwhisker]{by_2sd}} to rescale similarly.}
 
@@ -26,7 +26,7 @@ The function returns a \code{ggplot} object.
 \code{secret_weapon} is a function for plotting regression results of multiple models as a 'secret weapon' plot
 }
 \details{
-Andrew Gelman has coined the term \href{https://statmodeling.stat.columbia.edu/2005/03/07/the_secret_weap/}{"the secret weapon"} for dot-and-whisker plots that compare the estimated coefficients for a single predictor across many models or datasets.
+Andrew Gelman has coined the term "the secret weapon" for dot-and-whisker plots that compare the estimated coefficients for a single predictor across many models or datasets.
 \code{secret_weapon} takes a tidy data frame of regression results or a list of model objects and generates a dot-and-whisker plot of the results of a single variable across the multiple models.
 
 Tidy data frames to be plotted should include the variables \code{term} (names of predictors), \code{estimate} (corresponding estimates of coefficients or other quantities of interest), \code{std.error} (corresponding standard errors), and \code{model} (identifying the corresponding model).

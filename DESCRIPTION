@@ -1,9 +1,9 @@
 Package: dotwhisker
 Type: Package
 Title: Dot-and-Whisker Plots of Regression Results
-Version: 0.8.3
+Version: 0.8.4
 Authors@R: 
-   c(person("Frederick", "Solt", role = c("aut"), email = "frederick-solt@uiowa.edu"),
+    c(person("Frederick", "Solt", role = c("aut"), email = "frederick-solt@uiowa.edu"),
     person("Yue", "Hu", role = c("aut", "cre"), email = "yuehu@tsinghua.edu.cn"),
     person("Ben", "Bolker", role = "ctb", email = "bolker@mcmaster.ca"),
     person("Os", "Keyes", role = "ctb", email = "ironholds@gmail.com"),
@@ -16,15 +16,16 @@ Description: Create quick and easy dot-and-whisker plots of regression results. 
 Encoding: UTF-8
 URL: https://fsolt.org/dotwhisker/
 BugReports: https://github.com/fsolt/dotwhisker/issues
-Depends: R (>= 3.2.0), ggplot2 (>= 2.2.1),
+Depends: R (>= 4.2.0), ggplot2 (>= 2.2.1),
 Imports: grid, gtable, gridExtra, stats, parameters, performance,
-        patchwork, dplyr, stringr, ggstance, rlang, purrr
+        patchwork, dplyr, stringr, ggstance, rlang, purrr,
+        marginaleffects
 Suggests: ordinal, tibble, knitr, rmarkdown, broom
 License: MIT + file LICENSE
 VignetteBuilder: knitr
 RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2024-09-27 00:21:51 UTC; HU Yue
+Packaged: 2025-05-06 07:05:55 UTC; yuehu
 Author: Frederick Solt [aut],
   Yue Hu [aut, cre],
   Ben Bolker [ctb],
@@ -34,4 +35,4 @@ Author: Frederick Solt [aut],
   Chris Wallace [ctb],
   Christopher Warshaw [ctb]
 Repository: CRAN
-Date/Publication: 2024-09-27 06:40:05 UTC
+Date/Publication: 2025-05-06 11:10:02 UTC
